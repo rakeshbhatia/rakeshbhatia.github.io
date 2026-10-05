@@ -1,0 +1,412 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>The First Problem in an NLP Pipeline: Deciding What Belongs — Rakesh Bhatia</title>
+
+    <meta
+      name="description"
+      content="Why domain relevance filtering should come before embeddings, clustering, entity extraction, and LLM analysis in an NLP intelligence pipeline."
+    />
+    <meta name="author" content="Rakesh Bhatia" />
+    <meta name="theme-color" content="#fafaf8" />
+
+    <link
+      rel="canonical"
+      href="https://rakeshbhatia.github.io/writing/deciding-what-belongs/"
+    />
+    <link rel="stylesheet" href="../../assets/writing.css" />
+  </head>
+
+  <body class="article-page">
+    <div class="container">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+
+        <div class="site-nav-links">
+          <a href="/#featured">Work</a>
+          <a href="/writing/">Writing</a>
+          <a href="/#services">Services</a>
+          <a
+            href="https://github.com/rakeshbhatia"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </div>
+      </nav>
+
+      <main>
+        <article class="article-shell">
+          <header class="article-header">
+            <div class="eyebrow">Technical Note</div>
+
+            <h1>The First Problem in an NLP Pipeline: Deciding What Belongs</h1>
+
+            <p class="article-deck">
+              Before embeddings, clustering, or LLM analysis, a
+              domain-specific intelligence system has to decide which documents
+              deserve to enter the pipeline.
+            </p>
+
+            <div class="article-meta">
+              Rakesh Bhatia ·
+              <time datetime="2026-10-04">October 4, 2026</time>
+              · 5 min read
+            </div>
+
+            <div class="tags">
+              NLP · Classification · ML Systems · Information Filtering
+            </div>
+          </header>
+
+          <div class="article-body">
+            <p>
+              When people think about building an NLP intelligence system, the
+              interesting components usually come to mind first: embeddings,
+              semantic search, clustering, entity extraction, summarization,
+              retrieval, and increasingly, large language models.
+            </p>
+
+            <p>
+              One of the earliest lessons I learned while building an AI news
+              intelligence pipeline was that another problem comes before all
+              of them:
+            </p>
+
+            <p><strong>Should this document be processed at all?</strong></p>
+
+            <p>That sounds like a simple question.</p>
+
+            <p>It isn’t.</p>
+
+            <h2>The deceptively simple problem</h2>
+
+            <p>
+              Suppose you’re continuously ingesting documents from many
+              different sources.
+            </p>
+
+            <p>
+              In my case, those documents were news articles and the target
+              domain was artificial intelligence.
+            </p>
+
+            <p>The first requirement therefore sounded straightforward:</p>
+
+            <blockquote>
+              <p>Determine whether an incoming article is actually about AI.</p>
+            </blockquote>
+
+            <p>
+              A naive implementation might begin with a collection of
+              keywords:
+            </p>
+
+            <pre><code>AI
+artificial intelligence
+machine learning
+LLM
+neural network</code></pre>
+
+            <p>
+              If one appears, keep the document. That approach can get
+              surprisingly far, but it also fails in predictable ways.
+            </p>
+
+            <p>
+              An article may mention AI once while primarily discussing
+              something unrelated.
+            </p>
+
+            <p>
+              Another article may describe a highly relevant machine learning
+              development without repeatedly using the exact terminology
+              expected by the rules.
+            </p>
+
+            <p>
+              What initially appears to be a string matching problem quickly
+              becomes a familiar classification tradeoff: precision versus
+              recall.
+            </p>
+
+            <p>
+              Make the filter too permissive and irrelevant documents enter the
+              system.
+            </p>
+
+            <p>
+              Make it too restrictive and useful documents disappear before the
+              rest of the pipeline ever sees them.
+            </p>
+
+            <h2>Why an early mistake propagates</h2>
+
+            <p>
+              The importance of this decision becomes clearer when you look at
+              what happens next.
+            </p>
+
+            <p>
+              A domain-specific NLP pipeline might look something like this:
+            </p>
+
+            <pre><code>raw documents
+      ↓
+relevance filtering
+      ↓
+topic classification
+      ↓
+embedding generation
+      ↓
+semantic clustering
+      ↓
+entity extraction
+      ↓
+summaries / trends / higher-level intelligence</code></pre>
+
+            <p>
+              A false positive at the beginning doesn’t merely create one bad
+              database record.
+            </p>
+
+            <p>
+              That document may receive an embedding, be compared against other
+              documents, influence a semantic cluster, contribute entities to
+              an analytics system, and eventually be summarized by an LLM.
+            </p>
+
+            <p>
+              A small error at the entrance can therefore propagate through
+              several layers of downstream processing.
+            </p>
+
+            <p>
+              That makes relevance filtering disproportionately important.
+            </p>
+
+            <div
+              class="signal-diagram"
+              role="img"
+              aria-label="A false positive enters the downstream pipeline and creates unnecessary compute, cluster contamination, and bad downstream signals."
+            >
+              <div class="signal-diagram-title">
+                How one false positive can propagate
+              </div>
+
+              <div class="signal-flow">
+                <div class="signal-node warning">Irrelevant document</div>
+                <div class="signal-arrow" aria-hidden="true">→</div>
+                <div class="signal-node">Incorrectly accepted</div>
+                <div class="signal-arrow" aria-hidden="true">→</div>
+                <div class="signal-node">Downstream processing</div>
+              </div>
+
+              <div class="signal-consequences">
+                <div class="signal-consequence">Unnecessary compute</div>
+                <div class="signal-consequence">Cluster contamination</div>
+                <div class="signal-consequence">Noisier downstream signals</div>
+              </div>
+            </div>
+
+            <h2>Treat relevance as its own ML problem</h2>
+
+            <p>
+              Instead of treating relevance detection purely as a collection of
+              string rules, I began treating it as a classification problem of
+              its own.
+            </p>
+
+            <p>Conceptually:</p>
+
+            <pre><code>document
+    ↓
+domain relevance classifier
+    ↓
+relevant?
+   ↙       ↘
+ no         yes
+ ↓           ↓
+stop      downstream
+          processing</code></pre>
+
+            <p>
+              The first model doesn’t need to understand everything about the
+              document.
+            </p>
+
+            <p>Its objective is much narrower:</p>
+
+            <p>
+              <strong>
+                Does this document belong to the universe this system cares
+                about?
+              </strong>
+            </p>
+
+            <p>
+              That distinction is useful because narrow problems often don’t
+              require the most sophisticated model available.
+            </p>
+
+            <p>
+              A lightweight classifier can be a better architectural choice
+              than sending every incoming document through an expensive
+              general-purpose model.
+            </p>
+
+            <p>
+              The goal isn’t to use the most powerful model at every stage.
+            </p>
+
+            <p>
+              The goal is to use enough intelligence at each stage to make the
+              next one more reliable.
+            </p>
+
+            <h2>This pattern generalizes beyond news</h2>
+
+            <p>This is where the problem becomes much more interesting.</p>
+
+            <p>The same architecture appears across many domains.</p>
+
+            <div class="domain-grid">
+              <div class="domain-label">Cybersecurity</div>
+              <div class="domain-question">
+                Does this document describe a security threat relevant to the
+                organization?
+              </div>
+
+              <div class="domain-label">Financial intelligence</div>
+              <div class="domain-question">
+                Does this document contain a market event involving an entity
+                we monitor?
+              </div>
+
+              <div class="domain-label">Biotech</div>
+              <div class="domain-question">
+                Is this paper relevant to a specific therapeutic area or
+                research program?
+              </div>
+
+              <div class="domain-label">Legal intelligence</div>
+              <div class="domain-question">
+                Does this filing involve one of the jurisdictions, doctrines,
+                companies, or issues we care about?
+              </div>
+
+              <div class="domain-label">Customer intelligence</div>
+              <div class="domain-question">
+                Does this message contain actionable product feedback?
+              </div>
+            </div>
+
+            <p>
+              The downstream systems may be completely different, but the
+              gating problem is remarkably similar: first determine what
+              belongs, then spend additional computation understanding it.
+            </p>
+
+            <h2>Relevance filtering is also a systems optimization</h2>
+
+            <p>
+              There’s another reason this architecture matters: computational
+              efficiency.
+            </p>
+
+            <p>
+              Suppose every accepted document eventually passes through several
+              operations:
+            </p>
+
+            <ul>
+              <li>topic classification</li>
+              <li>embedding generation</li>
+              <li>entity extraction</li>
+              <li>semantic comparisons</li>
+              <li>indexing or vector storage</li>
+              <li>clustering</li>
+              <li>LLM-based analysis</li>
+            </ul>
+
+            <p>
+              An irrelevant document consumes resources at every stage it
+              reaches.
+            </p>
+
+            <p>
+              Filtering one bad document near the beginning can therefore
+              prevent several unnecessary operations later.
+            </p>
+
+            <p>
+              At scale, relevance classification becomes more than a data
+              quality measure.
+            </p>
+
+            <p>It becomes a systems optimization.</p>
+
+            <h2>The broader lesson</h2>
+
+            <p>
+              Building production NLP systems has repeatedly reinforced
+              something for me:
+            </p>
+
+            <p>
+              The most impressive model in the architecture isn’t necessarily
+              the component that determines the quality of the system. The
+              seemingly boring stages matter: filtering, data quality,
+              orchestration, and evaluation.
+            </p>
+
+            <p>
+              A sophisticated clustering system operating on poorly selected
+              documents is still operating on poorly selected documents.
+            </p>
+
+            <p>Before asking:</p>
+
+            <blockquote>
+              <p>“What intelligence can we extract from this data?”</p>
+            </blockquote>
+
+            <p>it’s worth asking an earlier question:</p>
+
+            <blockquote>
+              <p>“Why is this data in the system at all?”</p>
+            </blockquote>
+
+            <p>
+              Sometimes the first useful model isn’t the one generating the
+              intelligence.
+            </p>
+
+            <p>It’s the one deciding what deserves to reach it.</p>
+          </div>
+
+          <aside class="article-cta">
+            <h2>Working on a similar NLP or document intelligence problem?</h2>
+            <p>
+              I work on classification, semantic clustering, information
+              extraction, production ML pipelines, and the backend systems that
+              support them.
+            </p>
+            <a
+              class="button"
+              href="mailto:rakeshbhatia22@proton.me?subject=NLP%20or%20Document%20Intelligence%20Project"
+            >
+              Discuss your project
+            </a>
+          </aside>
+        </article>
+      </main>
+
+      <footer>© 2026 Rakesh Bhatia. All rights reserved.</footer>
+    </div>
+  </body>
+</html>

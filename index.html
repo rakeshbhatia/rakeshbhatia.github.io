@@ -10,7 +10,7 @@
       name="description"
       content="ML engineer building practical NLP pipelines, FastAPI backends, and production AI applications."
     />
-    <meta name="theme-color" content="#171717" />
+    <meta name="theme-color" content="#fafaf8" />
 
     <style>
       :root {
@@ -76,10 +76,51 @@
         margin-inline: auto;
       }
 
+      /* Primary navigation */
+      .site-nav {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        padding-top: 24px;
+      }
+
+      .site-nav-brand {
+        color: var(--primary-text);
+        font-size: 1.02rem;
+        font-weight: 800;
+        letter-spacing: -0.02em;
+        text-decoration: none;
+      }
+
+      .site-nav-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 18px;
+        align-items: center;
+      }
+
+      .site-nav-links a {
+        color: var(--secondary-text);
+        font-size: 0.96rem;
+        font-weight: 650;
+        text-decoration: none;
+      }
+
+      .site-nav a:hover {
+        color: var(--primary-text);
+      }
+
+      .site-nav a:focus-visible {
+        outline: 3px solid #d6d3d1;
+        outline-offset: 3px;
+        border-radius: 3px;
+      }
+
       /* Hero */
       header {
         max-width: 900px;
-        padding: 88px 0 50px;
+        padding: 52px 0 50px;
       }
 
       h1 {
@@ -264,6 +305,66 @@
       .image-button:hover .shot,
       .image-button:focus-visible .shot {
         transform: scale(1.012);
+      }
+
+      /* Writing */
+      .writing-feature {
+        max-width: 820px;
+        padding: 28px;
+        border: 1px solid var(--border);
+        border-radius: var(--radius);
+        background: var(--panel-bg);
+      }
+
+      .writing-meta {
+        margin-bottom: 11px;
+        color: #bcb8b4;
+        font-size: 0.86rem;
+        letter-spacing: 0.015em;
+      }
+
+      .writing-feature h2 {
+        margin: 0;
+        font-size: clamp(1.55rem, 3vw, 2.15rem);
+        line-height: 1.18;
+        letter-spacing: -0.025em;
+      }
+
+      .writing-feature h2 a {
+        text-decoration: none;
+      }
+
+      .writing-feature h2 a:hover {
+        text-decoration: underline;
+        text-decoration-thickness: 1px;
+        text-underline-offset: 5px;
+      }
+
+      .writing-feature p {
+        max-width: 760px;
+        margin: 14px 0 0;
+        color: var(--secondary-text);
+      }
+
+      .writing-link,
+      .writing-index-link {
+        display: inline-block;
+        margin-top: 18px;
+        color: var(--primary-text);
+        font-weight: 750;
+        text-decoration: none;
+      }
+
+      .writing-link:hover,
+      .writing-index-link:hover {
+        text-decoration: underline;
+        text-underline-offset: 4px;
+      }
+
+      .writing-index-link {
+        margin-top: 20px;
+        color: var(--secondary-text);
+        font-size: 0.92rem;
       }
 
       /* Services */
@@ -482,6 +583,16 @@
       }
 
       @media (max-width: 780px) {
+        .site-nav {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 12px;
+        }
+
+        .site-nav-links {
+          gap: 14px;
+        }
+
         .services,
         .projects {
           grid-template-columns: 1fr;
@@ -535,11 +646,152 @@
           transition: none !important;
         }
       }
+      /* LIGHT EDITORIAL THEME START */
+      :root {
+        --page-bg: #fafaf8;
+        --panel-bg: #ffffff;
+        --panel-bg-hover: #f4f4f1;
+        --primary-text: #181817;
+        --secondary-text: #5f5f5b;
+        --muted-text: #77746f;
+        --faint-text: #8b8882;
+        --border: #d9d8d3;
+        --button-border: #cecdc7;
+        --light-button: #1c1c1b;
+        --light-button-text: #ffffff;
+        --image-bg: #ffffff;
+      }
+
+      body {
+        background: var(--page-bg);
+        color: var(--primary-text);
+      }
+
+      .site-nav-links a {
+        color: #5b5955;
+      }
+
+      .site-nav a:hover {
+        color: #111110;
+      }
+
+      .button {
+        border-color: var(--button-border);
+        background: #ffffff;
+        color: #242421;
+      }
+
+      .button:hover {
+        background: #f1f1ee;
+        border-color: #aaa8a1;
+      }
+
+      .button.primary {
+        border-color: #1c1c1b;
+        background: #1c1c1b;
+        color: #ffffff;
+      }
+
+      .button.primary:hover {
+        border-color: #000000;
+        background: #000000;
+      }
+
+      .button:focus-visible,
+      .image-button:focus-visible,
+      .modal-close:focus-visible,
+      .site-nav a:focus-visible {
+        outline-color: #52514d;
+      }
+
+      main section {
+        border-top-color: #e2e1dc;
+      }
+
+      .section-title {
+        color: #77746f;
+      }
+
+      .featured p,
+      .project-card p,
+      .service p,
+      .contact p {
+        color: #5f5f5b;
+      }
+
+      .proofs {
+        color: #343431;
+      }
+
+      .stack {
+        color: #77746f;
+      }
+
+      .writing-feature,
+      .service,
+      .project-card {
+        border-color: #d9d8d3;
+        background: #ffffff;
+        box-shadow: 0 1px 0 rgba(24, 24, 23, 0.02);
+      }
+
+      .writing-meta {
+        color: #77746f;
+      }
+
+      .writing-feature p {
+        color: #5f5f5b;
+      }
+
+      .writing-index-link {
+        color: #67645f;
+      }
+
+      .image-frame,
+      .project-card .image-frame {
+        border-color: #d2d1cb;
+        background: #ffffff;
+      }
+
+      .project-card img,
+      .shot {
+        background: #ffffff;
+      }
+
+      .project-heading a {
+        color: #66635e;
+      }
+
+      .project-heading a:hover {
+        color: #181817;
+      }
+
+      footer {
+        color: #8b8882;
+      }
+      /* LIGHT EDITORIAL THEME END */
     </style>
   </head>
 
   <body>
     <div class="container">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+
+        <div class="site-nav-links">
+          <a href="#featured">Work</a>
+          <a href="#writing">Writing</a>
+          <a href="#services">Services</a>
+          <a
+            href="https://github.com/rakeshbhatia"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </div>
+      </nav>
+
       <header>
         <h1>ML systems that solve real business problems.</h1>
 
@@ -644,7 +896,41 @@
           </article>
         </section>
 
-        <section>
+        <section id="writing">
+          <h2 class="section-title">Writing</h2>
+
+          <article class="writing-feature">
+            <div class="writing-meta">
+              Technical Note · October 4, 2026 · 5 min read
+            </div>
+
+            <h2>
+              <a href="writing/deciding-what-belongs/">
+                The First Problem in an NLP Pipeline: Deciding What Belongs
+              </a>
+            </h2>
+
+            <p>
+              Before embeddings, clustering, or LLM analysis, a
+              domain-specific intelligence system has to decide which documents
+              deserve to enter the pipeline.
+            </p>
+
+            <div class="stack">
+              NLP · Classification · ML Systems · Information Filtering
+            </div>
+
+            <a class="writing-link" href="writing/deciding-what-belongs/">
+              Read article →
+            </a>
+          </article>
+
+          <a class="writing-index-link" href="writing/">
+            View all writing →
+          </a>
+        </section>
+
+        <section id="services">
           <h2 class="section-title">Services</h2>
 
           <div class="services">
