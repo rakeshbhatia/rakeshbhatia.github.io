@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 516" role="img" aria-labelledby="d1-title d1-desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"><title id="d1-title">Similar topic, different event</title>
+  <desc id="d1-desc">Two articles share entities and vocabulary around Company X and Model Y. One reports a product launch, the other a service outage. Both converge on high semantic similarity, but related does not mean the same event.</desc>
+  <defs>
+    <marker id="d1-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1.5 1.5 L8.5 5 L1.5 8.5" fill="none" stroke="#5B564E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <g id="article-a">
+    <rect x="10" y="20" width="345" height="140" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="30" y="48" font-size="12" font-weight="700" letter-spacing="1.2" fill="#1E4580">ARTICLE A</text>
+    <text x="30" y="82" font-size="16" font-weight="700" fill="#24211D">Company X releases Model Y</text>
+    <rect x="30" y="110" width="88" height="32" rx="16" fill="#E7F5F3" stroke="#1B7F79"/>
+    <text x="74" y="131" font-size="13" text-anchor="middle" fill="#146560">Company X</text>
+    <rect x="126" y="110" width="74" height="32" rx="16" fill="#E7F5F3" stroke="#1B7F79"/>
+    <text x="163" y="131" font-size="13" text-anchor="middle" fill="#146560">Model Y</text>
+    <rect x="208" y="110" width="120" height="32" rx="16" fill="#FFFFFF" stroke="#2F5FA8"/>
+    <text x="268" y="131" font-size="13" text-anchor="middle" fill="#1E4580">product launch</text>
+  </g>
+  <g id="article-b">
+    <rect x="375" y="20" width="345" height="140" rx="10" fill="#FDF3E3" stroke="#B25E09" stroke-width="1.5"/>
+    <text x="395" y="48" font-size="12" font-weight="700" letter-spacing="1.2" fill="#8F4A05">ARTICLE B</text>
+    <text x="395" y="82" font-size="16" font-weight="700" fill="#24211D">Model Y outage affects customers</text>
+    <rect x="395" y="110" width="88" height="32" rx="16" fill="#E7F5F3" stroke="#1B7F79"/>
+    <text x="439" y="131" font-size="13" text-anchor="middle" fill="#146560">Company X</text>
+    <rect x="491" y="110" width="74" height="32" rx="16" fill="#E7F5F3" stroke="#1B7F79"/>
+    <text x="528" y="131" font-size="13" text-anchor="middle" fill="#146560">Model Y</text>
+    <rect x="573" y="110" width="120" height="32" rx="16" fill="#FFFFFF" stroke="#B25E09"/>
+    <text x="633" y="131" font-size="13" text-anchor="middle" fill="#8F4A05">service outage</text>
+  </g>
+  <g fill="none" stroke="#5B564E" stroke-width="2" stroke-linejoin="round" stroke-linecap="round">
+    <path d="M182 164 V192 H365 V216" marker-end="url(#d1-arrow)"/>
+    <path d="M548 164 V192 H365 V216" marker-end="url(#d1-arrow)"/>
+  </g>
+  <g id="similarity">
+    <rect x="215" y="220" width="300" height="130" rx="10" fill="#E7F5F3" stroke="#1B7F79" stroke-width="1.5"/>
+    <text x="365" y="252" font-size="17" font-weight="700" text-anchor="middle" fill="#24211D">High semantic similarity</text>
+    <g fill="#1B7F79">
+      <circle cx="268" cy="277" r="3"/>
+      <circle cx="268" cy="301" r="3"/>
+      <circle cx="268" cy="325" r="3"/>
+    </g>
+    <g font-size="14" fill="#24211D">
+      <text x="281" y="282">Shared entities</text>
+      <text x="281" y="306">Shared product vocabulary</text>
+      <text x="281" y="330">Shared context</text>
+    </g>
+  </g>
+  <path d="M365 352 V386" fill="none" stroke="#5B564E" stroke-width="2" stroke-linecap="round" marker-end="url(#d1-arrow)"/>
+  <g id="decision">
+    <rect x="115" y="390" width="500" height="110" rx="10" fill="#FDF3E3" stroke="#B25E09" stroke-width="2"/>
+    <text x="365" y="425" font-size="20" font-weight="700" text-anchor="middle" fill="#24211D">Related ≠ same event</text>
+    <circle cx="255" cy="451" r="4" fill="#2D7D4E"/>
+    <text x="269" y="456" font-size="14" fill="#24211D">Useful for retrieval</text>
+    <circle cx="255" cy="476" r="4" fill="#B25E09"/>
+    <text x="269" y="481" font-size="14" fill="#24211D">Unsafe as final merge authority</text>
+  </g>
+</svg>

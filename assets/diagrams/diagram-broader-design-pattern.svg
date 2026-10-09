@@ -1,0 +1,64 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 284" role="img" aria-labelledby="d4-title d4-desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"><title id="d4-title">The broader design pattern</title>
+  <desc id="d4-desc">Three stages: retrieve broadly with fast, high-recall, cheap methods; evaluate narrowly with context-aware, stricter, higher-precision logic; commit carefully by merging, writing, or triggering downstream actions.</desc>
+  <defs>
+    <marker id="d4-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1.5 1.5 L8.5 5 L1.5 8.5" fill="none" stroke="#5B564E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <g id="stage-1">
+    <rect x="10" y="20" width="218" height="176" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="28" y="50" font-size="12" font-weight="700" letter-spacing="1.2" fill="#1E4580">STAGE 1</text>
+    <text x="28" y="80" font-size="18" font-weight="700" fill="#24211D">Retrieve broadly</text>
+    <line x1="28" y1="96" x2="210" y2="96" stroke="#CFCAC0" stroke-width="1"/>
+    <g fill="#2F5FA8">
+      <circle cx="31" cy="119" r="3"/>
+      <circle cx="31" cy="143" r="3"/>
+      <circle cx="31" cy="167" r="3"/>
+    </g>
+    <g font-size="13.5" fill="#24211D">
+      <text x="43" y="124">Fast</text>
+      <text x="43" y="148">High recall</text>
+      <text x="43" y="172">Cheap</text>
+    </g>
+  </g>
+  <g id="stage-2">
+    <rect x="256" y="20" width="218" height="176" rx="10" fill="#F1EDFA" stroke="#6246A8" stroke-width="1.5"/>
+    <text x="274" y="50" font-size="12" font-weight="700" letter-spacing="1.2" fill="#4E3790">STAGE 2</text>
+    <text x="274" y="80" font-size="18" font-weight="700" fill="#24211D">Evaluate narrowly</text>
+    <line x1="274" y1="96" x2="456" y2="96" stroke="#CFCAC0" stroke-width="1"/>
+    <g fill="#6246A8">
+      <circle cx="277" cy="119" r="3"/>
+      <circle cx="277" cy="143" r="3"/>
+      <circle cx="277" cy="167" r="3"/>
+    </g>
+    <g font-size="13.5" fill="#24211D">
+      <text x="289" y="124">Context-aware</text>
+      <text x="289" y="148">Stricter</text>
+      <text x="289" y="172">Higher precision</text>
+    </g>
+  </g>
+  <g id="stage-3">
+    <rect x="502" y="20" width="218" height="176" rx="10" fill="#E9F5EE" stroke="#2D7D4E" stroke-width="1.5"/>
+    <text x="520" y="50" font-size="12" font-weight="700" letter-spacing="1.2" fill="#1F6540">STAGE 3</text>
+    <text x="520" y="80" font-size="18" font-weight="700" fill="#24211D">Commit carefully</text>
+    <line x1="520" y1="96" x2="702" y2="96" stroke="#CFCAC0" stroke-width="1"/>
+    <g fill="#2D7D4E">
+      <circle cx="523" cy="119" r="3"/>
+      <circle cx="523" cy="143" r="3"/>
+      <circle cx="523" cy="167" r="3"/>
+    </g>
+    <g font-size="13.5" fill="#24211D">
+      <text x="535" y="124">Merge</text>
+      <text x="535" y="148">Write</text>
+      <text x="535" y="172">Trigger downstream action</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#5B564E" stroke-width="2" stroke-linecap="round">
+    <path d="M232 108 H252" marker-end="url(#d4-arrow)"/>
+    <path d="M478 108 H498" marker-end="url(#d4-arrow)"/>
+  </g>
+  <g font-size="15" text-anchor="middle" fill="#4A453E">
+    <text x="365" y="238">Use inexpensive models to find possibilities.</text>
+    <text x="365" y="262">Reserve stronger decision logic for consequential actions.</text>
+  </g>
+</svg>

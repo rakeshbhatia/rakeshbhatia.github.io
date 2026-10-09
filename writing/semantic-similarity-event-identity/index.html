@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+    <title>Semantic Similarity Isn’t the Same as Event Identity — Rakesh Bhatia</title>
+
+    <meta
+      name="description"
+      content="Why semantic similarity is useful for candidate retrieval but should not automatically decide whether two documents describe the same real-world event."
+    />
+    <meta name="author" content="Rakesh Bhatia" />
+    <meta name="theme-color" content="#fafaf8" />
+
+    <link
+      rel="canonical"
+      href="https://rakeshbhatia.github.io/writing/semantic-similarity-event-identity/"
+    />
+    <link rel="stylesheet" href="../../assets/writing.css" />
+  </head>
+
+  <body class="article-page">
+    <div class="container">
+      <nav class="site-nav" aria-label="Primary">
+        <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+
+        <div class="site-nav-links">
+          <a href="/#featured">Work</a>
+          <a href="/writing/">Writing</a>
+          <a href="/#services">Services</a>
+          <a
+            href="https://github.com/rakeshbhatia"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            GitHub
+          </a>
+        </div>
+      </nav>
+
+      <main>
+        <article class="article-shell">
+          <header class="article-header">
+            <div class="eyebrow">Technical Note</div>
+
+            <h1>Semantic Similarity Isn’t the Same as Event Identity</h1>
+
+            <p class="article-deck">
+              Embeddings are excellent at finding related content. That does
+              not mean they should make the final decision about whether two
+              documents describe the same real-world event.
+            </p>
+
+            <div class="article-meta">
+              Rakesh Bhatia ·
+              <time datetime="2026-10-09">October 9, 2026</time>
+              · 5 min read
+            </div>
+
+            <div class="tags">
+              NLP · Embeddings · Semantic Clustering · ML Systems
+            </div>
+          </header>
+
+          <div class="article-body">
+            <p>Embeddings are very good at answering a useful question:</p>
+
+            <p><strong>“What looks similar to this?”</strong></p>
+
+            <p>That is not the same as answering:</p>
+
+            <p><strong>“Does this belong to the same event?”</strong></p>
+
+            <p>
+              I learned that distinction while working on story clustering for
+              an AI news system. At first, semantic similarity looked like the
+              obvious foundation for grouping related articles. Embed each
+              article, compare the vectors, and merge items that are close
+              enough.
+            </p>
+
+            <p>That works—until it doesn’t.</p>
+
+            <p>
+              The failure mode is subtle because the wrong clusters often look
+              reasonable at first glance.
+            </p>
+
+            <h2>Similar topic, different event</h2>
+
+            <p>
+              Suppose two articles are both about the same company and the same
+              product area.
+            </p>
+
+            <p>One reports that a company released a new model.</p>
+
+            <p>
+              Another reports, two days later, that the same model caused a
+              major outage.
+            </p>
+
+            <p>
+              Those articles may be semantically close. They share the same
+              company, product name, technical vocabulary, and surrounding
+              context.
+            </p>
+
+            <p>But they are not the same event.</p>
+
+            <p>A pure similarity rule can easily blur the distinction:</p>
+
+            <figure class="article-diagram">
+              <img
+                src="../../assets/diagrams/diagram-similar-topic-different-event.svg"
+                alt="Two articles about Company X and Model Y converge on high semantic similarity, but the diagram shows that related content does not necessarily describe the same event."
+                width="730"
+                height="516"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+
+            <p>From a retrieval perspective, that similarity is useful.</p>
+
+            <p>From an identity perspective, it can be wrong.</p>
+
+            <h2>The opposite problem also happens</h2>
+
+            <p>
+              Now consider two articles describing the same underlying event
+              from very different angles.
+            </p>
+
+            <p>One headline focuses on the product launch.</p>
+            <p>Another focuses on the company’s strategy.</p>
+            <p>A third emphasizes a benchmark result.</p>
+
+            <p>
+              The language may differ enough that the pairwise similarity score
+              drops below the threshold you picked.
+            </p>
+
+            <p>So the same system can fail in both directions:</p>
+
+            <ul>
+              <li><strong>false merge:</strong> similar topic, different event</li>
+              <li><strong>false split:</strong> same event, different framing</li>
+            </ul>
+
+            <p>
+              That is where a single similarity threshold starts to feel less
+              like a solution and more like a compromise.
+            </p>
+
+            <h2>Thresholds are useful, but they are not identity</h2>
+
+            <p>Similarity thresholds are still valuable.</p>
+            <p>They can reduce the search space dramatically.</p>
+
+            <p>
+              Instead of comparing a new document against every existing
+              cluster, embeddings can retrieve a small number of plausible
+              candidates:
+            </p>
+
+            <figure class="article-diagram">
+              <img
+                src="../../assets/diagrams/diagram-candidate-retrieval.svg"
+                alt="A new document is embedded, used to retrieve nearby candidate clusters, and narrowed to a few plausible possibilities."
+                width="730"
+                height="232"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+
+            <p>That is a great job for vector similarity.</p>
+
+            <p>The mistake is letting retrieval make the final clustering decision.</p>
+
+            <p>
+              A score of <code>0.72</code> does not inherently mean “same
+              event.”
+            </p>
+
+            <p>
+              It means the representations are close according to the embedding
+              model.
+            </p>
+
+            <p>Those are different claims.</p>
+
+            <h2>Separate retrieval from authorization</h2>
+
+            <p>The architecture I now prefer separates the two jobs.</p>
+
+            <p>Embeddings answer:</p>
+
+            <blockquote>
+              <p>Which existing clusters are worth inspecting?</p>
+            </blockquote>
+
+            <p>A second decision step answers:</p>
+
+            <blockquote>
+              <p>Does this document actually describe the same underlying event?</p>
+            </blockquote>
+
+            <p>Conceptually:</p>
+
+            <figure class="article-diagram article-diagram-tall">
+              <img
+                src="../../assets/diagrams/diagram-retrieval-vs-authorization.svg"
+                alt="A retrieval and authorization pipeline where embeddings find candidate clusters, structured event comparison evaluates identity, and the final decision either merges into an existing cluster or creates a new cluster."
+                width="730"
+                height="796"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+
+            <p>
+              That separation is useful because each component is doing what it
+              is best at.
+            </p>
+
+            <p>
+              The embedding model is fast and broad. It narrows the candidate
+              set.
+            </p>
+
+            <p>
+              The comparison stage can be stricter and more deliberate. It can
+              look at details that semantic proximity alone may blur together:
+            </p>
+
+            <ul>
+              <li>what actually happened</li>
+              <li>which entities were involved</li>
+              <li>when it happened</li>
+              <li>what changed</li>
+              <li>whether one article is merely background or reaction</li>
+              <li>whether the two documents describe the same material event</li>
+            </ul>
+
+            <p>
+              In the story grouper I’m working on now, embeddings retrieve
+              candidate stories, but they do not authorize the merge by
+              themselves.
+            </p>
+
+            <p>
+              That distinction ended up being much more important than I
+              expected.
+            </p>
+
+            <h2>Why this matters outside news</h2>
+
+            <p>This is not really a news-specific problem.</p>
+
+            <p>
+              The same pattern appears anywhere we try to group semantically
+              related records into real-world units.
+            </p>
+
+            <div
+              class="comparison-table-wrap"
+              role="region"
+              aria-label="Similarity versus identity examples across domains"
+              tabindex="0"
+            >
+              <table class="comparison-table">
+                <caption class="sr-only">
+                  Examples of what semantic similarity can retrieve and what
+                  identity logic still needs to decide across five domains.
+                </caption>
+                <colgroup>
+                  <col class="comparison-domain-col" />
+                  <col class="comparison-retrieval-col" />
+                  <col class="comparison-identity-col" />
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th scope="col">Domain</th>
+                    <th scope="col">Similarity can retrieve…</th>
+                    <th scope="col">Identity still has to decide…</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Cybersecurity</th>
+                    <td>Related alerts</td>
+                    <td>Same incident or separate attacks?</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Customer support</th>
+                    <td>Similar tickets</td>
+                    <td>Duplicate issue or different failure?</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Legal</th>
+                    <td>Related filings</td>
+                    <td>Same matter or merely similar doctrine?</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Research</th>
+                    <td>Nearby papers</td>
+                    <td>Same finding or different contribution?</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Product feedback</th>
+                    <td>Similar complaints</td>
+                    <td>One root cause or multiple problems?</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <p>
+              In all of these cases, semantic similarity is extremely useful.
+            </p>
+
+            <p>It just answers a different question than identity.</p>
+
+            <h2>The broader design pattern</h2>
+
+            <p>
+              This has become one of the more useful patterns I’ve taken away
+              from building NLP systems:
+            </p>
+
+            <p>
+              <strong>
+                Use cheap, broad models to retrieve possibilities. Use stricter
+                logic to make consequential decisions.
+              </strong>
+            </p>
+
+            <p>
+              That can mean an LLM-based comparator, a rules layer, structured
+              metadata checks, a cross-encoder, or some combination of them.
+            </p>
+
+            <p>The exact implementation depends on the domain.</p>
+            <p>The architectural idea is more general:</p>
+
+            <figure class="article-diagram">
+              <img
+                src="../../assets/diagrams/diagram-broader-design-pattern.svg"
+                alt="Three-stage design pattern: retrieve broadly, evaluate narrowly, and commit carefully."
+                width="730"
+                height="284"
+                loading="lazy"
+                decoding="async"
+              />
+            </figure>
+
+            <p>That split also makes the system easier to reason about.</p>
+
+            <p>
+              If a document never reaches the correct candidate cluster, the
+              retrieval layer is probably the problem.
+            </p>
+
+            <p>
+              If the correct candidate is retrieved but the wrong merge
+              happens, the decision layer is probably the problem.
+            </p>
+
+            <p>
+              That is much easier to debug than one opaque similarity threshold
+              controlling everything.
+            </p>
+
+            <h2>The lesson</h2>
+
+            <p>Embeddings are excellent at finding things that look related.</p>
+
+            <p>That does not mean they should decide what is identical.</p>
+
+            <p>
+              When grouping documents into real-world events, incidents,
+              issues, or themes, similarity is often best treated as
+              <strong>candidate generation</strong>, not final authority.
+            </p>
+
+            <p>
+              Sometimes the important architectural improvement is not choosing
+              a better threshold.
+            </p>
+
+            <p>
+              It is realizing that the threshold was being asked to solve the
+              wrong problem.
+            </p>
+          </div>
+
+          <aside class="article-cta">
+            <h2>Working on a similar clustering or document intelligence problem?</h2>
+            <p>
+              I work on classification, semantic clustering, information
+              extraction, production ML pipelines, and the backend systems that
+              support them.
+            </p>
+            <a
+              class="button"
+              href="mailto:rakeshbhatia22@proton.me?subject=Semantic%20Clustering%20or%20Document%20Intelligence%20Project"
+            >
+              Discuss your project
+            </a>
+          </aside>
+        </article>
+      </main>
+
+      <footer>© 2026 Rakesh Bhatia. All rights reserved.</footer>
+    </div>
+  </body>
+</html>

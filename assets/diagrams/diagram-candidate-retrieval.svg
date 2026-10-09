@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 232" role="img" aria-labelledby="d2-title d2-desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"><title id="d2-title">Similarity as candidate retrieval</title>
+  <desc id="d2-desc">A new document is embedded into a vector, used to search nearby clusters, and produces a short list of candidates: Candidate A, B and C. Similarity narrows the search space but does not decide identity.</desc>
+  <defs>
+    <marker id="d2-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1.5 1.5 L8.5 5 L1.5 8.5" fill="none" stroke="#5B564E" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <g id="new-document">
+    <rect x="10" y="20" width="120" height="140" rx="10" fill="#FFFFFF" stroke="#BDB7AA" stroke-width="1.5"/>
+    <g font-size="16" font-weight="700" text-anchor="middle" fill="#24211D">
+      <text x="70" y="85">New</text>
+      <text x="70" y="105">document</text>
+    </g>
+  </g>
+  <g id="embedding">
+    <rect x="160" y="20" width="165" height="140" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="242.5" y="84" font-size="16" font-weight="700" text-anchor="middle" fill="#24211D">Embedding</text>
+    <text x="242.5" y="108" font-size="13" text-anchor="middle" fill="#4A453E">Vector representation</text>
+  </g>
+  <g id="candidate-retrieval">
+    <rect x="355" y="20" width="165" height="140" rx="10" fill="#E7F5F3" stroke="#1B7F79" stroke-width="1.5"/>
+    <g font-size="16" font-weight="700" text-anchor="middle" fill="#24211D">
+      <text x="437.5" y="72">Candidate</text>
+      <text x="437.5" y="92">retrieval</text>
+    </g>
+    <text x="437.5" y="120" font-size="13" text-anchor="middle" fill="#4A453E">Search nearby clusters</text>
+  </g>
+  <g id="top-few">
+    <rect x="550" y="20" width="170" height="140" rx="10" fill="#F1EDFA" stroke="#6246A8" stroke-width="1.5"/>
+    <g font-size="16" font-weight="700" text-anchor="middle" fill="#24211D">
+      <text x="635" y="54">Top few</text>
+      <text x="635" y="74">possibilities</text>
+    </g>
+    <g fill="#6246A8">
+      <circle cx="580" cy="96" r="3"/>
+      <circle cx="580" cy="116" r="3"/>
+      <circle cx="580" cy="136" r="3"/>
+    </g>
+    <g font-size="13.5" fill="#24211D">
+      <text x="592" y="101">Candidate A</text>
+      <text x="592" y="121">Candidate B</text>
+      <text x="592" y="141">Candidate C</text>
+    </g>
+  </g>
+  <g fill="none" stroke="#5B564E" stroke-width="2" stroke-linecap="round">
+    <path d="M134 90 H156" marker-end="url(#d2-arrow)"/>
+    <path d="M329 90 H351" marker-end="url(#d2-arrow)"/>
+    <path d="M524 90 H546" marker-end="url(#d2-arrow)"/>
+  </g>
+  <text x="365" y="208" font-size="15" text-anchor="middle" fill="#4A453E">Similarity reduces the search space. It does not make the final identity decision.</text>
+</svg>
