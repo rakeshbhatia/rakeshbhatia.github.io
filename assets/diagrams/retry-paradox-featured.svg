@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 736" role="img" aria-labelledby="r1-title r1-desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><title id="r1-title">The retry paradox</title>
+  <desc id="r1-desc">An automated publisher sends a post to Channel A. The provider accepts the post, which is a remote success, but the connection fails before the confirmation is stored, so the worker sees a timeout. A blind retry then creates a risk of a duplicate post. A failed request does not always mean nothing happened.</desc>
+  <defs>
+    <marker id="r1-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1.5 1.5 L8.5 5 L1.5 8.5" fill="none" stroke="#5B5A56" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="730" height="736" fill="#FAFAF8"/>
+
+  <!-- Start of flow -->
+  <g id="start">
+    <rect x="245" y="20" width="240" height="50" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="365" y="51" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Automated publisher</text>
+    <rect x="215" y="98" width="300" height="70" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="365" y="128" font-size="17" font-weight="700" text-anchor="middle" fill="#181817">Send post to Channel A</text>
+    <text x="365" y="152" font-size="14" text-anchor="middle" fill="#4A4A47">Request leaves the worker</text>
+  </g>
+
+  <!-- Column divider -->
+  <line x1="365" y1="262" x2="365" y2="520" stroke="#CFCBC1" stroke-width="1.5" stroke-dasharray="4 5"/>
+
+  <!-- Connectors -->
+  <g fill="none" stroke="#5B5A56" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M365 72 V94" marker-end="url(#r1-arrow)"/>
+    <path d="M365 170 V192 H180 V213" marker-end="url(#r1-arrow)"/>
+    <path d="M365 170 V192 H550 V213" marker-end="url(#r1-arrow)"/>
+    <path d="M550 334 V355" marker-end="url(#r1-arrow)"/>
+    <path d="M550 430 V451" marker-end="url(#r1-arrow)"/>
+    <path d="M550 516 V537" marker-end="url(#r1-arrow)"/>
+  </g>
+  <path d="M180 432 V575 H385" fill="none" stroke="#8A867D" stroke-width="2" stroke-dasharray="5 5" stroke-linecap="round" stroke-linejoin="round" marker-end="url(#r1-arrow)"/>
+  <text x="194" y="510" font-size="13" fill="#4A4A47">Post may already exist</text>
+
+  <!-- Left column: remote -->
+  <g id="remote">
+    <rect x="80" y="217" width="200" height="30" rx="15" fill="#E6F4EE" stroke="#1F7A5C" stroke-width="1.5"/>
+    <text x="180" y="237" font-size="12.5" font-weight="700" letter-spacing="1.2" text-anchor="middle" fill="#165C45">REMOTE SUCCESS</text>
+    <rect x="20" y="262" width="320" height="166" rx="10" fill="#E6F4EE" stroke="#1F7A5C" stroke-width="2"/>
+    <text x="180" y="330" font-size="17" font-weight="700" text-anchor="middle" fill="#181817">Provider accepts post</text>
+    <text x="180" y="356" font-size="14" text-anchor="middle" fill="#181817">Post is live on Channel A</text>
+    <text x="180" y="378" font-size="14" text-anchor="middle" fill="#4A4A47">The worker never records it</text>
+  </g>
+
+  <!-- Right column: local -->
+  <g id="local">
+    <rect x="450" y="217" width="200" height="30" rx="15" fill="#FDF3E3" stroke="#B25E09" stroke-width="1.5"/>
+    <text x="550" y="237" font-size="12.5" font-weight="700" letter-spacing="1.2" text-anchor="middle" fill="#8F4A05">LOCAL TIMEOUT</text>
+    <rect x="390" y="262" width="320" height="70" rx="10" fill="#FDF3E3" stroke="#B25E09" stroke-width="1.5"/>
+    <text x="550" y="291" font-size="17" font-weight="700" text-anchor="middle" fill="#181817">Connection fails</text>
+    <text x="550" y="315" font-size="14" text-anchor="middle" fill="#4A4A47">before the confirmation is stored</text>
+    <rect x="390" y="358" width="320" height="70" rx="10" fill="#FDF3E3" stroke="#B25E09" stroke-width="2"/>
+    <text x="550" y="387" font-size="17" font-weight="700" text-anchor="middle" fill="#181817">Worker sees timeout</text>
+    <text x="550" y="411" font-size="14" text-anchor="middle" fill="#4A4A47">Local record shows no confirmation</text>
+  </g>
+
+  <!-- Retry and risk -->
+  <g id="retry">
+    <rect x="390" y="454" width="320" height="60" rx="10" fill="#FFFFFF" stroke="#8A867D" stroke-width="1.5"/>
+    <text x="550" y="478" font-size="17" font-weight="700" text-anchor="middle" fill="#181817">Blind retry</text>
+    <text x="550" y="500" font-size="14" text-anchor="middle" fill="#4A4A47">Same request, sent again</text>
+  </g>
+  <g id="risk">
+    <rect x="390" y="540" width="320" height="70" rx="10" fill="#FBECEA" stroke="#A8473F" stroke-width="2"/>
+    <text x="550" y="569" font-size="17" font-weight="700" text-anchor="middle" fill="#181817">Potential duplicate post</text>
+    <text x="550" y="593" font-size="14" text-anchor="middle" fill="#85342E">A risk, not a certainty</text>
+  </g>
+
+  <!-- Caption -->
+  <line x1="10" y1="644" x2="720" y2="644" stroke="#E3E0D8" stroke-width="1.5"/>
+  <g font-size="22" font-weight="700" text-anchor="middle" fill="#181817">
+    <text x="365" y="682">A failed request does not always</text>
+    <text x="365" y="712">mean nothing happened.</text>
+  </g>
+</svg>

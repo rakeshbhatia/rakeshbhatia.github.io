@@ -18,7 +18,19 @@
       href="https://rakeshbhatia.github.io/writing/semantic-similarity-event-identity/"
     />
     <link rel="stylesheet" href="../../assets/writing.css" />
-  </head>
+    <meta property="og:type" content="article" />
+  <meta property="og:title" content="Semantic Similarity Isn’t the Same as Event Identity" />
+  <meta property="og:description" content="Why semantic similarity is not the same as real-world event identity." />
+  <meta property="og:url" content="https://rakeshbhatia.github.io/writing/semantic-similarity-event-identity/" />
+  <meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/semantic-similarity-event-identity.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Semantic Similarity Isn’t the Same as Event Identity" />
+  <meta name="twitter:description" content="Why semantic similarity is not the same as real-world event identity." />
+  <meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/semantic-similarity-event-identity.png" />
+</head>
 
   <body class="article-page">
     <div class="container">
@@ -63,6 +75,9 @@
             </div>
           </header>
 
+          <figure class="article-lead-visual">
+            <img src="../../assets/diagrams/diagram-similar-topic-different-event.svg" alt="Two semantically related articles share a product but describe separate events." width="730" height="516" loading="eager" decoding="async" />
+          </figure>
           <div class="article-body">
             <p>Embeddings are very good at answering a useful question:</p>
 
@@ -109,18 +124,8 @@
 
             <p>But they are not the same event.</p>
 
-            <p>A pure similarity rule can easily blur the distinction:</p>
+            <p>That is how a pure similarity rule can blur the distinction.</p>
 
-            <figure class="article-diagram">
-              <img
-                src="../../assets/diagrams/diagram-similar-topic-different-event.svg"
-                alt="Two articles about Company X and Model Y converge on high semantic similarity, but the diagram shows that related content does not necessarily describe the same event."
-                width="730"
-                height="516"
-                loading="lazy"
-                decoding="async"
-              />
-            </figure>
 
             <p>From a retrieval perspective, that similarity is useful.</p>
 

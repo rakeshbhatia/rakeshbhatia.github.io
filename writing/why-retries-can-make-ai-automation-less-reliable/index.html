@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why Retries Can Make AI Automation Less Reliable — Rakesh Bhatia</title>
+  <meta name="description" content="A practical look at idempotency, partial failures, and why restarting an automated workflow can produce more problems than it solves." />
+  <meta name="author" content="Rakesh Bhatia" />
+  <meta name="theme-color" content="#fafaf8" />
+  <link rel="canonical" href="https://rakeshbhatia.github.io/writing/why-retries-can-make-ai-automation-less-reliable/" />
+  <link rel="stylesheet" href="../../assets/writing.css?v=20261010" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Why Retries Can Make AI Automation Less Reliable" />
+  <meta property="og:description" content="Why blind retries can duplicate external actions in AI automation workflows." />
+  <meta property="og:url" content="https://rakeshbhatia.github.io/writing/why-retries-can-make-ai-automation-less-reliable/" />
+  <meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/why-retries-can-make-ai-automation-less-reliable.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why Retries Can Make AI Automation Less Reliable" />
+  <meta name="twitter:description" content="Why blind retries can duplicate external actions in AI automation workflows." />
+  <meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/why-retries-can-make-ai-automation-less-reliable.png" />
+</head>
+<body class="article-page">
+<div class="container">
+  <nav class="site-nav" aria-label="Primary">
+    <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+    <div class="site-nav-links">
+      <a href="/#featured">Work</a>
+      <a href="/writing/">Writing</a>
+      <a href="/#services">Services</a>
+      <a href="https://github.com/rakeshbhatia" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </nav>
+  <main><article class="article-shell">
+    <header class="article-header">
+      <div class="eyebrow">Technical Note</div>
+      <h1>Why Retries Can Make AI Automation Less Reliable</h1>
+      <p class="article-deck">Retrying a failed job sounds like the safe thing to do. In automated systems that publish, notify, or write data, it can be the thing that creates the next failure.</p>
+      <div class="article-meta">Rakesh Bhatia · <time datetime="2026-10-10">October 10, 2026</time> · 4 min read</div>
+      <div class="tags">Backend Engineering · AI Automation · Idempotency · Reliability</div>
+    </header>
+    <figure class="article-lead-visual">
+      <img src="../../assets/diagrams/retry-paradox-featured.svg" alt="The retry paradox: a post succeeds remotely, but its confirmation is lost, and blind retry risks a duplicate post." width="730" height="736" decoding="async" fetchpriority="high" />
+    </figure>
+    <div class="article-body">
+<p>A worker times out. A request fails. A scheduled job crashes halfway through.</p>
+<p>The instinctive fix is straightforward: run it again.</p>
+<p>Usually that is sensible. But I ran into a complication while building automated publishing workflows for an AI news platform: <strong>a failed job isn't necessarily a job that did nothing.</strong></p>
+<p>That distinction matters a lot once the system starts taking actions outside its own database.</p>
+<h2>A failure after success</h2>
+<p>Imagine an automation that selects a news story, generates a short social post, and sends it to two channels.</p>
+<p>The first channel accepts the post. Before the worker saves the confirmation, the connection drops. The worker sees an error, even though the post is already live.</p>
+<p>Then the scheduler retries the entire job.</p>
+<p>Now you potentially have two copies of the same post, or a successful post on one channel and a duplicate on the other.</p>
+
+<p>Nothing about that failure requires an LLM. It is a distributed systems problem with an AI component attached.</p>
+<h2>Keep state outside the worker</h2>
+<p>One design choice that helped was treating the database as the source of truth, not the worker's memory.</p>
+<p>Instead of simply selecting a story and firing off API calls, a publication can have a persistent record that represents what the system is trying to accomplish.</p>
+<p>In my news-publishing workflow, the database tracks the story being processed, publication status, and external identifiers for deliveries. There is also a uniqueness constraint on the story identifier, which guards against creating multiple publication records for the same story.</p>
+<p>That is useful protection. But it is important not to overstate what it guarantees.</p>
+<p><strong>One database record does not automatically mean one external post.</strong></p>
+<p>A remote API may accept an action before your application knows it succeeded. The database and the remote service cannot ordinarily commit one shared transaction.</p>
+<h2>Retry the unfinished operation, not the entire story</h2>
+<p>The practical approach is to make retries aware of progress.</p>
+<p>Conceptually, the workflow should look more like this:</p>
+<figure class="article-diagram"><img src="../../assets/diagrams/state-aware-retries.svg" alt="State-aware delivery distinguishes confirmed, pending, and ambiguous operations before a retry." loading="lazy" decoding="async" width="730" height="706"></figure>
+<p>If Channel A is confirmed and Channel B is pending, retry Channel B. Do not regenerate the entire publication or blindly resend Channel A.</p>
+<p>There is still an uncomfortable edge case: what if Channel A accepted the post, but the confirmation never arrived?</p>
+<p>Where the provider supports an idempotency key, use it. Otherwise, recovery may require looking up the remote post, reconciling by a stable identifier, or flagging an ambiguous attempt for review rather than immediately resending it.</p>
+<p>No amount of local retry logic can turn an unreliable external API into a perfect exactly-once system.</p>
+<h2>The LLM is only one part of the reliability problem</h2>
+<p>When people discuss AI automation failures, much of the attention goes to prompts, model quality, and hallucinations.</p>
+<p>Those matter. But even a flawless generated post can be published twice, sent to the wrong destination, or silently skipped by a brittle workflow.</p>
+<p>I find it useful to separate three questions:</p>
+<figure class="article-diagram"><img src="../../assets/diagrams/reliability-layers.svg" alt="Three independent layers of workflow reliability: decision, state and delivery." width="730" height="360" loading="lazy" decoding="async"></figure>
+<div class="comparison-table-wrap" role="region" aria-label="Three reliability questions" tabindex="0"><table class="comparison-table">
+<thead>
+<tr>
+  <th scope="col">Layer</th>
+  <th scope="col">Question</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td><strong>Decision</strong></td>
+  <td>Should this item be published at all?</td>
+</tr>
+<tr>
+  <td><strong>State</strong></td>
+  <td>Has this item already entered the publishing workflow?</td>
+</tr>
+<tr>
+  <td><strong>Delivery</strong></td>
+  <td>Which external actions actually completed?</td>
+</tr>
+</tbody>
+</table></div>
+<p>Each layer needs its own checks. A high-quality LLM output does not compensate for missing publication state, just as an excellent database schema does not guarantee a correct editorial decision.</p>
+<h2>The lesson extends well beyond publishing</h2>
+<p>Consider invoice generation, CRM updates, payment workflows, customer notifications, document processing, or agents that call third-party tools.</p>
+<p>They all have some version of the same question:</p>
+<p><strong>What happens if the action succeeds but the acknowledgement disappears?</strong></p>
+<p>If the answer is simply “we retry everything,” you may have built duplicate side effects into the recovery path.</p>
+<p>The broader principle is simple: <strong>design the retry path at the same time as the happy path.</strong></p>
+<p>That usually means persistent state, explicit delivery outcomes, stable operation identifiers, and a deliberate policy for ambiguous results. It also means being honest about the difference between preventing duplicate database rows and preventing duplicate real-world actions.</p>
+<p>Retries are essential for resilient automation.</p>
+<p>They just aren't a substitute for knowing what already happened.</p>
+
+    </div>
+    <aside class="article-cta">
+      <h2>Building an automation that needs to work reliably?</h2>
+      <p>I work on production ML pipelines, asynchronous backend jobs, data workflows, and external API integrations.</p>
+      <a class="button" href="mailto:rakeshbhatia22@proton.me?subject=Backend%20Automation%20Project">Discuss your project</a>
+    </aside>
+  </article></main>
+  <footer>© 2026 Rakesh Bhatia. All rights reserved.</footer>
+</div>
+</body>
+</html>

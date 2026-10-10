@@ -854,3 +854,37 @@ footer {
     margin: 26px 0 28px;
   }
 }
+
+/* Shared editorial article headers and featured visuals */
+.article-header {
+  margin-bottom: 0;
+  padding-bottom: 26px;
+  border-bottom: 1px solid #e2e1dc;
+}
+.article-header .article-deck {
+  margin: 22px 0 24px;
+  max-width: 660px;
+  font-size: 1.07rem;
+  line-height: 1.62;
+  font-weight: 400;
+  color: #65635e;
+}
+.article-header .article-meta { font-size: .88rem; }
+.article-header .tags { margin-top: 11px; }
+.article-lead-visual {
+  margin: 29px 0 42px;
+  width: 100%;
+}
+.article-lead-visual img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+}
+.article-body > :first-child { margin-top: 0; }
+.article-body table { margin-block: 0; }
+.article-body .comparison-table-wrap { margin-block: 27px 31px; }
+@media(max-width: 780px) {
+  .article-header .article-deck { font-size: 1.04rem; }
+  .article-lead-visual { margin: 24px 0 34px; }
+}

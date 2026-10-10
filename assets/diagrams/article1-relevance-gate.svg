@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 258" role="img" aria-labelledby="lead1title lead1desc">
+<title id="lead1title">Relevance filtering before enrichment</title><desc id="lead1desc">Incoming documents pass through a relevance classifier; irrelevant documents stop, while relevant documents proceed to enrichment.</desc>
+<rect width="730" height="258" rx="14" fill="#fafaf8"/>
+<g font-family="Arial, sans-serif" font-size="19" text-anchor="middle">
+<rect x="24" y="80" width="180" height="100" rx="12" fill="#e9f1fb" stroke="#3867ad" stroke-width="2"/><text x="114" y="123" fill="#183e70" font-weight="700">Incoming</text><text x="114" y="149" fill="#183e70">documents</text>
+<rect x="268" y="80" width="195" height="100" rx="12" fill="#e4f5f1" stroke="#168577" stroke-width="2"/><text x="365" y="121" fill="#0d5952" font-weight="700">Relevance</text><text x="365" y="148" fill="#0d5952">classifier</text>
+<rect x="528" y="17" width="177" height="95" rx="12" fill="#e8f5eb" stroke="#268247" stroke-width="2"/><text x="616" y="52" fill="#176538" font-weight="700">Relevant</text><text x="616" y="81" fill="#176538">→ Process</text>
+<rect x="528" y="153" width="177" height="87" rx="12" fill="#fff0e2" stroke="#b56b16" stroke-width="2"/><text x="616" y="185" fill="#8c4d08" font-weight="700">Irrelevant</text><text x="616" y="213" fill="#8c4d08">→ Stop</text>
+</g><g fill="none" stroke="#6a6660" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M204 130 H258"/><path d="m248 123 10 7 -10 7"/><path d="M463 130 H489 V66 H516"/><path d="m506 59 10 7 -10 7"/><path d="M489 130 V196 H516"/><path d="m506 189 10 7 -10 7"/></g>
+</svg>

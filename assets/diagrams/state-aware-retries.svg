@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 730 706" role="img" aria-labelledby="s1-title s1-desc" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" xmlns:c2pa="http://c2pa.org/manifest"><title id="s1-title">Retry only unfinished work</title>
+  <desc id="s1-desc">A worker loads the publication record and checks the delivery state for Channel A. If confirmed, it skips A. If pending, it attempts A and records the confirmed outcome. If ambiguous, because the provider may have accepted the post but the acknowledgement was lost, it reconciles or verifies with the provider, and holds for review instead of blindly resending. Channel B is then checked independently.</desc>
+  <defs>
+    <marker id="s1-arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M1.5 1.5 L8.5 5 L1.5 8.5" fill="none" stroke="#5B5A56" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+    </marker>
+  </defs>
+  <rect width="730" height="706" fill="#FAFAF8"/>
+
+  <!-- Connectors -->
+  <g fill="none" stroke="#5B5A56" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M365 72 V94" marker-end="url(#s1-arrow)"/>
+    <path d="M365 168 V196 H125 V226" marker-end="url(#s1-arrow)"/>
+    <path d="M365 168 V226" marker-end="url(#s1-arrow)"/>
+    <path d="M365 168 V196 H605 V226" marker-end="url(#s1-arrow)"/>
+    <path d="M125 296 V320" marker-end="url(#s1-arrow)"/>
+    <path d="M365 296 V320" marker-end="url(#s1-arrow)"/>
+    <path d="M605 296 V320" marker-end="url(#s1-arrow)"/>
+    <path d="M365 390 V414" marker-end="url(#s1-arrow)"/>
+    <path d="M605 390 V414" marker-end="url(#s1-arrow)"/>
+    <!-- merge into Channel B check -->
+    <path d="M125 390 V516 H605"/>
+    <path d="M365 492 V516"/>
+    <path d="M605 492 V516"/>
+    <path d="M365 516 V542" marker-end="url(#s1-arrow)"/>
+  </g>
+  <text x="617" y="408" font-size="12.5" fill="#4A4A47">if unresolved</text>
+
+  <!-- Load + check A -->
+  <g id="load-and-check">
+    <rect x="225" y="20" width="280" height="50" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="365" y="51" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Load publication record</text>
+    <rect x="185" y="98" width="360" height="70" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="365" y="128" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Check Channel A delivery state</text>
+    <text x="365" y="152" font-size="14" text-anchor="middle" fill="#4A4A47">What does the record say?</text>
+  </g>
+
+  <!-- Status row -->
+  <g id="states">
+    <rect x="10" y="230" width="230" height="64" rx="10" fill="#E6F4EE" stroke="#1F7A5C" stroke-width="2"/>
+    <text x="125" y="258" font-size="16" font-weight="700" text-anchor="middle" fill="#165C45">Confirmed</text>
+    <text x="125" y="280" font-size="14" text-anchor="middle" fill="#4A4A47">Provider acknowledged</text>
+    <rect x="250" y="230" width="230" height="64" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="2"/>
+    <text x="365" y="258" font-size="16" font-weight="700" text-anchor="middle" fill="#1E4580">Pending</text>
+    <text x="365" y="280" font-size="14" text-anchor="middle" fill="#4A4A47">Not yet delivered</text>
+    <rect x="490" y="230" width="230" height="64" rx="10" fill="#FDF3E3" stroke="#B25E09" stroke-width="2"/>
+    <text x="605" y="258" font-size="16" font-weight="700" text-anchor="middle" fill="#8F4A05">Ambiguous</text>
+    <text x="605" y="280" font-size="14" text-anchor="middle" fill="#4A4A47">May have been accepted</text>
+  </g>
+
+  <!-- Action row -->
+  <g id="actions">
+    <rect x="10" y="324" width="230" height="64" rx="10" fill="#FFFFFF" stroke="#1F7A5C" stroke-width="1.5"/>
+    <text x="125" y="352" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Skip A</text>
+    <text x="125" y="374" font-size="14" text-anchor="middle" fill="#4A4A47">Already delivered</text>
+    <rect x="250" y="324" width="230" height="64" rx="10" fill="#FFFFFF" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="365" y="352" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Attempt A</text>
+    <text x="365" y="374" font-size="14" text-anchor="middle" fill="#4A4A47">Send the pending action</text>
+    <rect x="490" y="324" width="230" height="64" rx="10" fill="#FFFFFF" stroke="#B25E09" stroke-width="1.5"/>
+    <text x="605" y="352" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Reconcile or verify</text>
+    <text x="605" y="374" font-size="14" text-anchor="middle" fill="#4A4A47">Ask the provider first</text>
+  </g>
+
+  <!-- Outcome row -->
+  <g id="outcomes">
+    <rect x="250" y="418" width="230" height="72" rx="10" fill="#E6F4EE" stroke="#1F7A5C" stroke-width="1.5"/>
+    <text x="365" y="448" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Record confirmed</text>
+    <text x="365" y="468" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">outcome</text>
+    <rect x="490" y="418" width="230" height="72" rx="10" fill="#FDF3E3" stroke="#B25E09" stroke-width="1.5"/>
+    <text x="605" y="448" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Hold for review</text>
+    <text x="605" y="471" font-size="14" text-anchor="middle" fill="#85342E">Do not blindly resend</text>
+  </g>
+
+  <!-- Channel B -->
+  <g id="check-b">
+    <rect x="185" y="546" width="360" height="70" rx="10" fill="#EDF3FB" stroke="#2F5FA8" stroke-width="1.5"/>
+    <text x="365" y="576" font-size="16" font-weight="700" text-anchor="middle" fill="#181817">Check Channel B independently</text>
+    <text x="365" y="600" font-size="14" text-anchor="middle" fill="#4A4A47">Same three states, evaluated on its own</text>
+  </g>
+
+  <!-- Caption -->
+  <line x1="10" y1="644" x2="720" y2="644" stroke="#E3E0D8" stroke-width="1.5"/>
+  <text x="365" y="680" font-size="16" text-anchor="middle" fill="#4A4A47">A retry resumes from recorded progress, not from the beginning.</text>
+</svg>

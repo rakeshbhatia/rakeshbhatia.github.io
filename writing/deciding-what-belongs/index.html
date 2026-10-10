@@ -18,7 +18,19 @@
       href="https://rakeshbhatia.github.io/writing/deciding-what-belongs/"
     />
     <link rel="stylesheet" href="../../assets/writing.css" />
-  </head>
+    <meta property="og:type" content="article" />
+  <meta property="og:title" content="The First Problem in an NLP Pipeline: Deciding What Belongs" />
+  <meta property="og:description" content="Why relevance filtering matters before embeddings, clustering, and LLM analysis." />
+  <meta property="og:url" content="https://rakeshbhatia.github.io/writing/deciding-what-belongs/" />
+  <meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/deciding-what-belongs.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="The First Problem in an NLP Pipeline: Deciding What Belongs" />
+  <meta name="twitter:description" content="Why relevance filtering matters before embeddings, clustering, and LLM analysis." />
+  <meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/deciding-what-belongs.png" />
+</head>
 
   <body class="article-page">
     <div class="container">
@@ -63,6 +75,9 @@
             </div>
           </header>
 
+          <figure class="article-lead-visual">
+            <img src="../../assets/diagrams/article1-relevance-gate.svg" alt="Incoming documents go through a relevance classifier: relevant documents proceed, irrelevant documents stop." width="730" height="258" loading="eager" decoding="async" />
+          </figure>
           <div class="article-body">
             <p>
               When people think about building an NLP intelligence system, the
