@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Why Smaller ML Models Still Belong in Modern AI Pipelines — Rakesh Bhatia</title>
+  <meta name="description" content="A practical look at choosing deterministic rules, smaller supervised models, embeddings, and LLMs for production AI systems." />
+  <meta name="author" content="Rakesh Bhatia" />
+  <meta name="theme-color" content="#fafaf8" />
+  <link rel="canonical" href="https://rakeshbhatia.github.io/writing/why-smaller-ml-models-still-belong/" />
+  <link rel="stylesheet" href="../../assets/writing.css?v=20261010" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="Why Smaller ML Models Still Belong in Modern AI Pipelines" />
+  <meta property="og:description" content="Why smaller supervised models still deserve a place alongside embeddings and LLMs in production AI pipelines." />
+  <meta property="og:url" content="https://rakeshbhatia.github.io/writing/why-smaller-ml-models-still-belong/" />
+  <meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/why-smaller-ml-models-still-belong.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="Why Smaller ML Models Still Belong in Modern AI Pipelines" />
+  <meta name="twitter:description" content="A practical case for matching model complexity to the task." />
+  <meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/why-smaller-ml-models-still-belong.png" />
+</head>
+<body class="article-page">
+<div class="container">
+  <nav class="site-nav" aria-label="Primary">
+    <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+    <div class="site-nav-links">
+      <a href="/#featured">Work</a>
+      <a href="/writing/">Writing</a>
+      <a href="/#services">Services</a>
+      <a href="https://github.com/rakeshbhatia" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </nav>
+  <main><article class="article-shell">
+    <header class="article-header">
+      <div class="eyebrow">Technical Note</div>
+      <h1>Why Smaller ML Models Still Belong in Modern AI Pipelines</h1>
+      <p class="article-deck">The most useful model in a production system isn’t necessarily the largest one. Sometimes the better design is to ask a narrower question.</p>
+      <div class="article-meta">Rakesh Bhatia · <time datetime="2026-10-12">October 12, 2026</time> · 5 min read</div>
+      <div class="tags">Machine Learning · Model Selection · Production AI · NLP</div>
+    </header>
+    <figure class="article-lead-visual">
+      <img src="../../assets/diagrams/article4-layered-decisions-simplified.svg" alt="A layered pipeline: deterministic rules can decide straightforward cases; otherwise TF-IDF and XGBoost classify relevance before richer topic analysis." width="730" height="455" decoding="async" fetchpriority="high" />
+    </figure>
+    <div class="article-body">
+<p>It’s tempting to reach for an LLM every time an application needs to interpret text. The models are flexible, the APIs are convenient, and the first prototype can be impressively quick to build.</p>
+<p>But one of the more useful decisions I made while building an AI news intelligence pipeline was to <strong>keep a narrow classification task narrow</strong>.</p>
+<p>Before the system clusters articles, extracts entities, or produces higher-level analysis, it has to answer a basic question:</p>
+<p><strong>Is this article actually about artificial intelligence?</strong></p>
+<p>That is a decision a general-purpose LLM <em>could</em> make. It does not follow that an LLM is the best default component for making it repeatedly.</p>
+<h2>Start with the shape of the problem</h2>
+<p>An incoming feed item usually gives us a title, description, and sometimes a category. The goal is a binary decision: relevant or not relevant.</p>
+<p>The output is not a nuanced essay or a multi-step plan. It is a label that controls what the rest of the system does.</p>
+<p>A conventional supervised classifier is a reasonable place to start when the categories are well defined and labeled examples are available. It can be evaluated on a held-out dataset, loaded locally, and called without making a remote generative-model request for every item.</p>
+<p>That doesn’t automatically make it more accurate than an LLM. It makes it a <strong>different engineering tradeoff</strong>, one worth measuring instead of dismissing.</p>
+<h2>The classifier I actually use</h2>
+<p>For the binary relevance gate in Axon Review, the training pipeline combines <strong>TF-IDF features with an XGBoost classifier</strong>. The current gatekeeper training script caps the text representation at 5,000 features, trains on labeled article text, and saves the resulting pipeline as a <code>joblib</code> artifact.</p>
+<p>The runtime is slightly more interesting than a single model call.</p>
+<p>It first checks a small set of deterministic conditions. Certain clearly unrelated title/category patterns can be excluded. Recognized AI-related category or title terms can take a fast path. Otherwise, the article’s title and description go to the trained binary classifier.</p>
+<p>The current prediction service treats a probability of at least <code>0.5</code> as AI-related. It also returns the model’s positive-class probability, which is retained in the broader classification workflow.</p>
+<p>One nuance matters here: a positive-class probability isn’t automatically a calibrated measure of certainty. If confidence is going to drive review decisions, calibration and error analysis deserve attention.</p>
+<h2>A pipeline doesn’t have to use one kind of model</h2>
+<p>The next decision in my news pipeline is different: <strong>what kind of AI story is this?</strong></p>
+<p>That is where the architecture becomes more layered. Macro-topic classification uses sentence embeddings followed by a trained classifier. Some subtopic decisions use specialized models and separate vectorizers. There are also taxonomy-normalization rules to keep stored labels consistent with the categories exposed to readers.</p>
+<p>So this isn’t a story about rejecting embeddings, transformers, or LLMs.</p>
+<p>It’s about avoiding a false choice between “classical ML everywhere” and “LLMs everywhere.”</p>
+<p>Different stages can have different requirements:</p>
+<div class="comparison-table-wrap" role="region" aria-label="Model choice by decision type" tabindex="0"><table class="comparison-table">
+<thead>
+<tr>
+  <th>Decision</th>
+  <th>Reasonable starting point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Obvious exclusion or trusted metadata</td>
+  <td>Deterministic rule</td>
+</tr>
+<tr>
+  <td>Narrow, labeled relevance decision</td>
+  <td>Supervised text classifier</td>
+</tr>
+<tr>
+  <td>Richer topical representation</td>
+  <td>Embeddings plus classifier</td>
+</tr>
+<tr>
+  <td>Ambiguous, context-heavy judgment</td>
+  <td>Stronger model or human review, when justified</td>
+</tr>
+</tbody>
+</table></div>
+<p>The last row is a design option, <strong>not a description of an LLM fallback in my current binary classifier</strong>.</p>
+<h2>Where smaller models struggle</h2>
+<p>Conventional models have limitations. Vocabulary changes. Product names appear overnight. A narrow classifier can misread indirect references or borderline stories. Rules that once looked clever can become brittle.</p>
+<p>That is why evaluation matters more than the simplicity of the architecture diagram.</p>
+<p>A useful review set should include hard negatives, borderline positives, newly emerging terminology, and documents from sources the model did not learn to recognize by accident.</p>
+<p>For a relevance gate, I would pay particular attention to <strong>false negatives</strong>. An irrelevant article that slips through may consume downstream resources; a highly relevant article that gets rejected may never have another chance to enter the intelligence pipeline.</p>
+<p>The correct balance depends on what the application values. There is no universal threshold that settles it.</p>
+<h2>When an LLM is worth adding</h2>
+<figure class="article-diagram"><img src="../../assets/diagrams/article4-selective-escalation-simplified.svg" alt="A proposed experiment: keep routine decisions with a smaller classifier, route selected uncertain cases to a stronger model, then evaluate quality, latency, and cost." width="730" height="440" loading="lazy" decoding="async" /></figure>
+<p>A reasonable next experiment is selective escalation: let the cheaper classifier handle straightforward cases and send difficult cases to a stronger decision process.</p>
+<p>But that design needs its own evaluation. A middle band of classifier scores is not proof that all difficult errors live there. Some confidently wrong predictions will escape it, and the second model can introduce new mistakes.</p>
+<p>I’d compare at least three approaches on the same labeled examples: a conventional classifier alone, an LLM-based classifier alone, and a hybrid that escalates only selected cases. Then measure quality, latency, and total operational cost—not just the number of API calls.</p>
+<p>Otherwise, “hybrid” is just another architectural preference pretending to be an optimization.</p>
+<h2>The larger lesson</h2>
+<p>Building AI applications is partly an exercise in choosing where to spend intelligence.</p>
+<p>Use simple rules when the rule is reliable. Use small supervised models when the task is narrow and measurable. Use richer representations when they add something the cheaper approach misses. Reserve expensive or complex decisions for cases where their value can actually be demonstrated.</p>
+<p>The point isn’t that smaller models always win.</p>
+<p><strong>It’s that model size should be a consequence of the problem, not the starting assumption.</strong></p>
+
+    </div>
+    <aside class="article-cta">
+      <h2>Choosing models for a production ML pipeline?</h2>
+      <p>I work on practical classification, NLP, backend systems, and ML workflows built around measurable requirements.</p>
+      <a class="button" href="mailto:rakeshbhatia22@proton.me?subject=ML%20Pipeline%20Project">Discuss your project</a>
+    </aside>
+  </article></main>
+  <footer>© 2026 Rakesh Bhatia. All rights reserved.</footer>
+</div>
+</body>
+</html>
