@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI-Assisted Coding Doesn’t Eliminate the Need for Engineering Judgment — Rakesh Bhatia</title>
+  <meta name="description" content="What AI-assisted development taught me about architecture, verification, Svelte 5, and controlling complexity." />
+  <meta name="author" content="Rakesh Bhatia" />
+  <meta name="theme-color" content="#fafaf8" />
+  <link rel="canonical" href="https://rakeshbhatia.github.io/writing/ai-assisted-coding-engineering-judgment/" />
+  <link rel="stylesheet" href="../../assets/writing.css?v=20261010" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="AI-Assisted Coding Doesn’t Eliminate the Need for Engineering Judgment" />
+  <meta property="og:description" content="What AI-assisted development taught me about architecture, verification, Svelte 5, and controlling complexity." />
+  <meta property="og:url" content="https://rakeshbhatia.github.io/writing/ai-assisted-coding-engineering-judgment/" />
+  <meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/ai-assisted-coding-engineering-judgment.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="AI-Assisted Coding Doesn’t Eliminate the Need for Engineering Judgment" />
+  <meta name="twitter:description" content="What AI-assisted development taught me about architecture, verification, Svelte 5, and controlling complexity." />
+  <meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/ai-assisted-coding-engineering-judgment.png" />
+</head>
+<body class="article-page">
+<div class="container">
+  <nav class="site-nav" aria-label="Primary">
+    <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+    <div class="site-nav-links">
+      <a href="/#featured">Work</a>
+      <a href="/writing/">Writing</a>
+      <a href="/#services">Services</a>
+      <a href="https://github.com/rakeshbhatia" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </nav>
+  <main><article class="article-shell">
+    <header class="article-header">
+      <div class="eyebrow">Technical Note</div>
+      <h1>AI-Assisted Coding Doesn’t Eliminate the Need for Engineering Judgment</h1>
+      <p class="article-deck">Generating code is increasingly easy. Deciding what to build, recognizing when the implementation is wrong, and keeping the system maintainable are different responsibilities.</p>
+      <div class="article-meta">Rakesh Bhatia · <time datetime="2026-10-13">October 13, 2026</time> · 6 min read</div>
+      <div class="tags">Software Engineering · AI Coding Agents · Architecture · Code Quality</div>
+    </header>
+    <figure class="article-lead-visual">
+      <img src="../../assets/diagrams/article5-ownership-featured.svg" alt="AI assistance helps produce implementations and tests, while engineering ownership defines requirements, architecture, and acceptance." width="730" height="430" decoding="async" fetchpriority="high" />
+    </figure>
+    <div class="article-body">
+<p>An AI coding agent can produce hundreds of lines of code in seconds. That changes how quickly a developer can move from an idea to a working implementation.</p>
+<p>But it also creates an awkward imbalance: <strong>code can be generated much faster than a human can understand or maintain it</strong>.</p>
+<p>I’ve experienced both sides while building Axon Review, an AI news intelligence platform with a Python backend and a SvelteKit frontend. Coding assistants helped me move through unfamiliar territory and iterate on complex features. They also required frequent correction, especially when generated code conflicted with the architecture I intended to build.</p>
+<p>The lesson wasn’t to stop using AI. It was to become much more deliberate about what I delegate.</p>
+<h2>Speed changes the bottleneck</h2>
+<p>One of the most demanding parts of the backend has been story grouping: deciding which news articles belong to the same unfolding event. It’s a deceptively difficult task. Two articles can discuss the same companies or research area while describing completely different developments.</p>
+<p>AI assistance made it possible for me to iterate on the story-clustering implementation repeatedly, rather than spend much longer writing each revision from scratch. That mattered because the challenge was not just producing a clustering module. It was refining the behavior as new edge cases and failure modes became apparent.</p>
+<p>The current story-grouping code reflects that complexity. It separates candidate retrieval from event-identity decisions, and the repository contains tests and engineering notes around the system. Those checks matter more to me than the raw number of lines an agent can generate.</p>
+<p><strong>Faster implementation doesn’t remove the need to decide whether the implementation solves the right problem.</strong> It just brings that decision around more often.</p>
+<h2>Choosing the stack is part of the engineering</h2>
+<p>The frontend was a different kind of challenge. I had relatively little experience building production frontends, yet I wanted a responsive interface with reactive filters and multiple views. I chose SvelteKit with Svelte 5 after comparing framework tradeoffs, rather than defaulting to React because of its popularity.</p>
+<p>That was a judgment call, not a universal claim that Svelte is better for every project. For this application, I preferred its approach to reactivity and the development experience I expected it to provide.</p>
+<p>AI generated the frontend code, but I supplied detailed prompts that functioned almost like informal technical specifications. I decided on the framework and pushed the implementation toward the conventions I wanted to maintain.</p>
+<p>That distinction became particularly important with <strong>Svelte 5 runes</strong>. During development, coding assistants sometimes introduced older Svelte patterns into files intended to use the newer reactive approach. I had to identify that drift and explicitly require regenerated code consistent with Svelte 5.</p>
+<p>Whether that behavior came from the framework’s relative novelty, the model’s training distribution, or another cause is hard to establish. The practical point is simpler: plausible-looking code can still violate a project’s technical constraints.</p>
+<p>Working through those problems also taught me Svelte concepts I might not have learned as quickly from passively accepting generated files. Debugging forced me to understand what the code was actually doing.</p>
+<h2>Prompts can be specifications—but they need enforcement</h2>
+<p>I increasingly treat a coding prompt as a lightweight engineering specification. It should state the objective, relevant constraints, existing interfaces, and what must not change.</p>
+<p>For me, the most important decisions to retain are requirements, architecture, and core stack selection. I still use AI to compare options and challenge my assumptions. But I don’t want a code generator quietly changing the system’s direction because another pattern is easier to produce.</p>
+<p>That doesn’t mean I insist on manually writing everything else. I regularly delegate the creation of tests, fixtures, harnesses, and deployment steps under my supervision. The division is not “human writes important code, AI writes unimportant code.” Tests and deployment are important, too.</p>
+<p>The distinction is <strong>who defines the desired behavior and who accepts the evidence that it works</strong>.</p>
+<p>A generated test can reproduce the same mistaken assumption as the generated implementation. A successful build can coexist with an architectural mistake. Verification has to include the requirement itself, not merely whether the code runs.</p>
+<h2>The high-velocity technical-debt trap</h2>
+<p>AI coding enthusiasts sometimes focus on how much faster code can be produced. Critics often focus on the mistakes in the generated code. I think both can miss the accumulated cost of development moving faster than comprehension.</p>
+<p>It’s easy to accept an extra abstraction when it arrives already implemented. It’s easy to keep an unnecessary helper, dependency, or configuration layer because removing it takes another round of review. Multiply that across many agent-driven iterations and the codebase can become harder to reason about even as new features appear quickly.</p>
+<p>This is where familiar engineering principles become more useful, not less:</p>
+<ul>
+<li><strong>KISS:</strong> prefer the smallest design that solves the actual problem.</li>
+<li><strong>YAGNI:</strong> don’t build speculative flexibility for requirements that don’t exist.</li>
+<li><strong>DRY:</strong> eliminate meaningful duplication without creating abstractions just for their own sake.</li>
+<li><strong>Modularity:</strong> keep responsibilities and interfaces understandable enough to test and change independently.</li>
+</ul>
+<p>I’ve found that the human role increasingly involves pruning. Before asking an agent to add another layer, I want to know why the existing structure can’t handle the requirement.</p>
+<h2>An engineering loop, not a code vending machine</h2>
+<p>The productive workflow is iterative: define a change, generate a candidate implementation, inspect its behavior, test the relevant assumptions, and either accept or revise it.</p>
+<figure class="article-diagram"><img src="../../assets/diagrams/article5-engineering-loop.svg" alt="A compact AI-assisted engineering loop showing specification, implementation, verification, and acceptance or revision." width="730" height="410" loading="lazy" decoding="async" /></figure>
+<p>The crucial point is that <strong>tests support judgment; they don’t replace it</strong>. A suite can be green while the tests are incomplete, the requirements are misunderstood, or the implementation introduces maintenance costs no test was designed to measure.</p>
+<p>The same applies to AI-assisted review. A second agent can help inspect a change, but agreement between two models is not independent proof of correctness.</p>
+<h2>What changes—and what doesn’t</h2>
+<p>I don’t think developers need to reject AI coding tools to preserve their skills. In my own case, using AI lowered the friction of exploring an unfamiliar frontend framework and let me iterate on backend ML features faster than I otherwise could have.</p>
+<p>But accepting generated code without understanding its role in the system is a poor trade. The developer still has to decide what the software is supposed to do, what constraints matter, and which compromises are acceptable.</p>
+<p>As generation becomes cheaper, that responsibility becomes more visible. The limiting resource is no longer just how quickly we can type a function. It’s how clearly we can specify, evaluate, and maintain an evolving system.</p>
+<p>My guiding principle is straightforward:</p>
+<p><strong>Own the architecture, delegate the boilerplate, and aggressively enforce simplicity.</strong></p>
+<p>The goal isn’t to maximize the amount of AI-generated code. It’s to ship software whose behavior and complexity you can still defend.</p>
+
+    </div>
+    <aside class="article-cta">
+      <h2>Building software with AI coding agents?</h2>
+      <p>I work on practical AI/ML systems, backend architecture, and production workflows with an emphasis on correctness and maintainability.</p>
+      <a class="button" href="mailto:rakeshbhatia22@proton.me?subject=AI%20Assisted%20Engineering%20Project">Discuss your project</a>
+    </aside>
+  </article></main>
+  <footer>© 2026 Rakesh Bhatia. All rights reserved.</footer>
+</div>
+</body>
+</html>
