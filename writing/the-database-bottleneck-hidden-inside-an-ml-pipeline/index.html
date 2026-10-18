@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>The Database Bottleneck Hidden Inside an ML Pipeline — Rakesh Bhatia</title>
+  <meta name="description" content="Why bounding data scope, indexing real queries, and batching persistence can matter more than shaving milliseconds off model inference." />
+  <meta name="author" content="Rakesh Bhatia" />
+  <meta name="theme-color" content="#fafaf8" />
+  <link rel="canonical" href="https://rakeshbhatia.github.io/writing/the-database-bottleneck-hidden-inside-an-ml-pipeline/" />
+  <link rel="stylesheet" href="../../assets/writing.css?v=20261010" />
+  <meta property="og:type" content="article" />
+  <meta property="og:title" content="The Database Bottleneck Hidden Inside an ML Pipeline" />
+  <meta property="og:description" content="Why bounding data scope, indexing real queries, and batching persistence can matter more than shaving milliseconds off model inference." />
+  <meta property="og:url" content="https://rakeshbhatia.github.io/writing/the-database-bottleneck-hidden-inside-an-ml-pipeline/" />
+  <meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/the-database-bottleneck-hidden-inside-an-ml-pipeline.png" />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:image:type" content="image/png" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="The Database Bottleneck Hidden Inside an ML Pipeline" />
+  <meta name="twitter:description" content="Why bounding data scope, indexing real queries, and batching persistence can matter more than shaving milliseconds off model inference." />
+  <meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/the-database-bottleneck-hidden-inside-an-ml-pipeline.png" />
+  <style>
+    .article-body .article-data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1.25rem 0 1.5rem;
+      font-size: 0.91em;
+      line-height: 1.55;
+    }
+    .article-body .article-data-table th,
+    .article-body .article-data-table td {
+      padding: 0.7rem 0.8rem;
+      text-align: left;
+      vertical-align: top;
+      border-bottom: 1px solid #e5e7eb;
+      overflow-wrap: anywhere;
+    }
+    .article-body .article-data-table thead th {
+      font-weight: 700;
+      background: #f7f8f8;
+      border-top: 1px solid #e5e7eb;
+    }
+    .article-body .article-data-table th:first-child,
+    .article-body .article-data-table td:first-child {
+      width: 31%;
+    }
+    @media (max-width: 600px) {
+      .article-body .article-data-table { font-size: 0.85em; }
+      .article-body .article-data-table th,
+      .article-body .article-data-table td { padding: 0.55rem 0.45rem; }
+    }
+  </style>
+</head>
+<body class="article-page">
+<div class="container">
+  <nav class="site-nav" aria-label="Primary">
+    <a class="site-nav-brand" href="/">Rakesh Bhatia</a>
+    <div class="site-nav-links">
+      <a href="/#featured">Work</a>
+      <a href="/writing/">Writing</a>
+      <a href="/#services">Services</a>
+      <a href="https://github.com/rakeshbhatia" target="_blank" rel="noopener noreferrer">GitHub</a>
+    </div>
+  </nav>
+  <main><article class="article-shell">
+    <header class="article-header">
+      <div class="eyebrow">Technical Note</div>
+      <h1>The Database Bottleneck Hidden Inside an ML Pipeline</h1>
+      <p class="article-deck">Before optimizing the model, examine how much data the system asks it—and the database—to process.</p>
+      <div class="article-meta">Rakesh Bhatia · <time datetime="2026-10-18">October 18, 2026</time> · 6 min read</div>
+      <div class="tags">Data Engineering · PostgreSQL · ML Pipelines · Performance</div>
+    </header>
+    <figure class="article-lead-visual">
+      <img src="../../assets/diagrams/article6-row-vs-batch.svg" alt="Row-by-row processing repeatedly reads and writes records while batch-oriented processing fetches rows together and submits grouped updates." width="800" height="470" decoding="async" fetchpriority="high" />
+    </figure>
+    <div class="article-body">
+<p>It’s natural to start performance work at the most visible part of an ML pipeline: inference. Measure the classifier. Time the embedding model. Look for a faster similarity search.</p>
+<p>But the slowest component may be somewhere less interesting: the database reads that assemble a candidate set, or the writes that persist the model’s output.</p>
+<p>A fast model cannot rescue a pipeline that repeatedly searches too much data or makes unnecessary trips to its database.</p>
+<h2>A batch of records isn’t necessarily a batch of operations</h2>
+<p>Imagine processing 500 articles. One implementation fetches 500 IDs, loops over them, reads each article separately, computes a prediction, and issues an individual update. We call the overall task a <em>batch</em>, but the database still participates in hundreds of small interactions.</p>
+<p>Another implementation loads the required rows in one operation, processes the rows in memory, and submits a collection of parameterized updates within a transaction.</p>
+<p>The second approach can reduce connection, statement-execution, and transaction-management overhead. But the details matter. Passing multiple parameter dictionaries to SQLAlchemy’s <code>execute()</code> is an <em>executemany-style</em> operation; it does not guarantee that the driver emits one SQL statement or makes only one network round trip.</p>
+<p>The point isn’t that batching is automatically faster. It’s that <strong>the unit of application work and the unit of database work are not necessarily the same</strong>.</p>
+<h2>A concrete example from my news pipeline</h2>
+<p>In <a href="https://axonreview.com">Axon Review</a>, incoming articles go through relevance and topic classification before appearing in a broader news-intelligence workflow.</p>
+<p>The codebase contains a row-oriented utility that selects up to 500 unclassified IDs and calls a single-record classification function for each one. That function reads and updates the article individually.</p>
+<p>It also contains a <code>classify_batch()</code> path. This path fetches the requested article rows together, evaluates their classification state, collects changed values, and submits those updates through one SQLAlchemy <code>execute()</code> call with multiple parameter dictionaries inside a transaction.</p>
+<p>These are two real implementation patterns, not the results of a benchmark. I haven’t established a measured speedup between them, and the existence of the row-oriented utility doesn’t prove it is a production bottleneck. Still, comparing the paths reveals where avoidable interaction overhead can accumulate.</p>
+
+<h2>The more fundamental boundary: how many rows are eligible?</h2>
+<p>Writes are only part of the story. A database can spend substantial time identifying <em>which</em> records deserve processing.</p>
+<p>During development of <a href="https://axonreview.com">Axon Review's</a> PostgreSQL/Supabase backend, I noticed slow database operations around high-throughput ingestion and story clustering. My observations pointed toward expensive scans and sorts involving large article sets, multi-column filters, and structured entity metadata. I have not isolated those costs in a published benchmark, so I treat them as engineering observations rather than quantified results.</p>
+<p>The responses were mostly structural. The schema includes a composite index on <code>source_type</code> and <code>pub_date</code>, a GIN index on the typed-entity JSONB column, and a partial index supporting versioned story-assignment lookups. Story processing also uses bounded time horizons rather than treating all historical articles as equally eligible candidates.</p>
+<p>Those choices serve different purposes:</p>
+<table class="article-data-table">
+<thead>
+<tr>
+  <th>Technique</th>
+  <th>Problem it addresses</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Composite index</td>
+  <td>Queries filtering on a useful combination of columns</td>
+</tr>
+<tr>
+  <td>GIN index on JSONB</td>
+  <td>Supported containment and structured-data lookup patterns</td>
+</tr>
+<tr>
+  <td>Partial index</td>
+  <td>An important subset of rows, without indexing every row indiscriminately</td>
+</tr>
+<tr>
+  <td>Time-windowed candidates</td>
+  <td>Preventing old or irrelevant data from expanding every retrieval step</td>
+</tr>
+</tbody>
+</table>
+<p>None is a universal optimization. Whether an index is used depends on the actual predicate, selectivity, statistics, and query plan. Indexes also cost storage and make writes more expensive. A time window can improve efficiency while accidentally excluding an older event that still matters.</p>
+<p><strong>The boundary must be justified by the application, not chosen merely to make a benchmark look faster.</strong></p>
+<h2>Measure the whole path, not just the model</h2>
+<p><img src="../../assets/diagrams/article6-data-scope.svg" alt="Bounded data scope, query selection, model inference, and batched persistence as distinct performance stages." /></p>
+<p>I prefer to separate end-to-end time into a few observable stages: fetching eligible records, obtaining any necessary candidate history, executing model inference, writing results, and committing transactions.</p>
+<p>For PostgreSQL, <code>EXPLAIN (ANALYZE, BUFFERS)</code> can show whether a representative query is performing sequential scans, sorting, or avoidable buffer work. Application timers can help reveal how much elapsed time is actually spent outside the model. Database statistics can identify repeated expensive statements.</p>
+<p>Then compare changes using representative data and comparable workloads. A local test against a tiny table may tell a very different story from a remote database with a growing article history.</p>
+<p>There are tradeoffs to consider. Large update batches can hold locks longer, increase rollback scope, and consume more memory. The right batch size is something to test—not a magic constant. In many systems, chunked processing and short transactions are more robust than one enormous write.</p>
+<h2>An optimization should earn its complexity</h2>
+<p>My approach is guided by KISS, YAGNI, DRY, and modularity. I’m reluctant to add elaborate caching layers or new abstractions before identifying a bottleneck. But I’m comfortable with targeted structural measures when a known query shape is likely to degrade as data grows.</p>
+<p>That means identifying the real access pattern first: the columns being filtered, the ordering required, the amount of history that legitimately matters, and the number of records actually changing.</p>
+<p>An optimization earns its place by resolving observed work or preventing a predictable scaling problem without making the system harder to operate.</p>
+<p>The lesson I keep returning to is straightforward:</p>
+<p><strong>Bound your data scope before you scale your models.</strong></p>
+<p>A relevance gate, a sensible candidate window, an index aligned with the query, or a grouped write can eliminate work before inference tuning begins. It may not be the glamorous part of machine learning engineering, but it often determines whether the larger system remains manageable as the dataset grows.</p>
+<p>Data and feature bloat can quietly overwhelm otherwise capable software. Optimizing the model alone won’t fix an undisciplined data flow.</p>
+
+    </div>
+    <aside class="article-cta">
+      <h2>Optimizing a data or ML pipeline?</h2>
+      <p>I work on practical AI/ML pipelines, PostgreSQL-backed systems, and backend architecture with an emphasis on reliability and maintainability.</p>
+      <a class="button" href="mailto:rakeshbhatia22@proton.me?subject=Data%20Engineering%20Project">Discuss your project</a>
+    </aside>
+  </article></main>
+  <footer>© 2026 Rakesh Bhatia. All rights reserved.</footer>
+</div>
+</body>
+</html>
