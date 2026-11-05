@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>We Audited 100 AI News Classifications. Three Were Wrong. — Rakesh Bhatia</title>
+<meta name="description" content="A production ML relevance audit: 100 reviewed classifications, three false positives, stratified sampling, and the limitations behind 98.25% estimated accuracy." />
+<meta name="author" content="Rakesh Bhatia" /><meta name="theme-color" content="#fafaf8" />
+<link rel="canonical" href="https://rakeshbhatia.github.io/writing/we-audited-100-ai-news-classifications/" /><link rel="stylesheet" href="../../assets/writing.css" />
+<meta property="og:type" content="article" /><meta property="og:title" content="We Audited 100 AI News Classifications. Three Were Wrong." />
+<meta property="og:description" content="A production ML relevance audit: 100 reviewed classifications, three false positives, stratified sampling, and the limitations behind 98.25% estimated accuracy." /><meta property="og:url" content="https://rakeshbhatia.github.io/writing/we-audited-100-ai-news-classifications/" />
+<meta property="og:image" content="https://rakeshbhatia.github.io/assets/social-preview/we-audited-100-ai-news-classifications.png" /><meta property="og:image:width" content="1200" /><meta property="og:image:height" content="630" />
+<meta name="twitter:card" content="summary_large_image" /><meta name="twitter:title" content="We Audited 100 AI News Classifications. Three Were Wrong." />
+<meta name="twitter:description" content="A production ML relevance audit: 100 reviewed classifications, three false positives, stratified sampling, and the limitations behind 98.25% estimated accuracy." /><meta name="twitter:image" content="https://rakeshbhatia.github.io/assets/social-preview/we-audited-100-ai-news-classifications.png" />
+<style>
+.article-header + .article-body { padding-top:24px; }
+.article-diagram { margin:32px 0; }
+.article-diagram img { display:block;width:100%;max-width:100%;height:auto;margin-inline:auto; }
+.article-metrics-table { display:block;overflow-x:auto;border-collapse:collapse;width:100%;margin:28px 0;font-size:.95rem; }
+.article-metrics-table th,.article-metrics-table td { border:1px solid #52525b;padding:10px 12px;text-align:left; }
+.article-metrics-table th { color:#f5f5f4;background:#262626; }
+</style></head>
+<body class="article-page"><div class="container">
+<nav class="site-nav" aria-label="Primary"><a class="site-nav-brand" href="/">Rakesh Bhatia</a><div class="site-nav-links"><a href="/#featured">Work</a><a href="/writing/">Writing</a><a href="/#services">Services</a><a href="https://github.com/rakeshbhatia" target="_blank" rel="noopener noreferrer">GitHub</a></div></nav>
+<main><article class="article-shell"><header class="article-header"><div class="eyebrow">Technical Note</div>
+<h1>We Audited 100 AI News Classifications. Three Were Wrong.</h1><p class="article-deck">How I evaluated a rules-first XGBoost classifier against 100 human-supervised production decisions—and why impressive accuracy numbers still need scrutiny.</p>
+<div class="article-meta">Rakesh Bhatia · <time datetime="2026-11-05">November 5, 2026</time> · 8 min read</div>
+<div class="tags">Machine Learning · XGBoost · Model Evaluation · Production AI</div></header>
+<div class="article-body"><p>A story about an <em>artificial coral reef</em> made it through our AI news filter.</p>
+<p>So did an article about an Atari VCS software-store closure. And a general market roundup whose references to AI weren't substantial enough to justify inclusion in our feed.</p>
+<p>Those were the three mistakes we found when we reviewed 100 classifications from Axon Review's production news pipeline.</p>
+<p>The other 97 matched our final editorial labels. That's encouraging. But the more useful result is <strong>what we learned by auditing the decisions rather than trusting a single accuracy number</strong>.</p>
+<p>Our production relevance filter is a lightweight hybrid: exclusions first, inclusion keywords second, and an XGBoost model for cases that don't match either rule. We wanted to understand how that <em>whole pipeline</em> behaved on real incoming news—not just how the model scored on a separate test set.</p>
+<figure class="article-diagram"><img alt="Rules-first AI relevance classification flow" decoding="async" height="400" loading="lazy" src="../../assets/diagrams/article9-classifier-flow.svg" width="730"/></figure>
+<h2>Why AI-news relevance is harder than keyword matching</h2>
+<p>A new language-model release is easy to classify. So is an unrelated travel advisory. The interesting cases sit between those extremes.</p>
+<p>An AI chip company's earnings might clearly matter. A legal dispute involving an AI company might belong in the feed even without discussing model architecture. A broad financial article might contain either one passing AI reference—or several independently substantial sections on AI investment.</p>
+<p>There isn't a universal definition that settles every borderline case. For Axon Review, our editorial criterion is <strong>substantive relevance</strong>: developments in AI models, research, applications, infrastructure, companies, business strategy, policy, or social consequences. AI need not dominate the article. A stray company name, though, is not enough.</p>
+<p>That distinction matters upstream. A false positive adds noise to the feed and may enter downstream topic classification or story grouping. A false negative may never reach those systems at all.</p>
+<h2>The classifier is rules-first, not model-first</h2>
+<p>The binary AI-relevance stage follows three ordered paths:</p>
+<ol>
+<li><strong>Exclusion regex:</strong> If an exclusion matches the article's title or source category, label the article non-AI.</li>
+<li><strong>Inclusion keywords:</strong> Otherwise, if an AI keyword matches the title or category, label the article AI-related.</li>
+<li><strong>XGBoost fallback:</strong> Otherwise, classify the combined title and description using the trained binary model.</li>
+</ol>
+<p>The exclusion rule takes precedence over the inclusion rule. Existing saved binary decisions are generally reused instead of repeatedly inferred. AI-related news may then pass through separate topic and subtopic classification; our audit does <strong>not</strong> evaluate those later stages.</p>
+<p>The rule paths store <code>0.01</code> or <code>0.99</code> as binary scores. These are hardcoded values, <strong>not calibrated probabilities</strong>. Nor do we yet have reliable production counts separating decisions made by exclusions, inclusions, and XGBoost. We therefore cannot claim that a particular percentage of articles bypassed model inference.</p>
+<p>The purpose of the architecture is pragmatic: cheap, explicit checks for recognizable cases; classical ML for everything else. But efficiency doesn't establish correctness. Rules can be brittle, and the model can misclassify. We need to evaluate their combined output.</p>
+<h2>Our first benchmark was not the production audit</h2>
+<p>We first ran a <strong>raw-model-only</strong> XGBoost benchmark on 100 historical examples, balanced by reference label: 50 AI-related, 50 non-AI. At a decision threshold of 0.5, the model classified 97 correctly: <strong>47 true positives, 50 true negatives, three false negatives, and no false positives</strong>.</p>
+<p>That was a useful development baseline, not conclusive evidence of production performance. The reference labels were AI-assisted and only partly human-reviewed, and the dataset was not a documented random sample of live traffic. We checked available historical datasets for training overlap, but those checks do not establish complete independence from every training source.</p>
+<p>Most importantly, the raw-model benchmark <em>skipped the production rule layer</em>.</p>
+<h2>A production audit with 100 final editorial decisions</h2>
+<p>On <strong>October 31, 2026</strong>, we exported eligible <code>news</code> records classified during the preceding 14-day rolling window. There were <strong>9,675</strong> records: <strong>2,816 predicted AI-related</strong> and <strong>6,859 predicted non-AI</strong>. The query's 20,000-row cap did not truncate this snapshot.</p>
+<p>We randomly selected <strong>50 from each predicted class</strong>, without replacement, using seed <code>42</code>. We chose this balanced allocation to examine both accepted and rejected articles, not because production traffic is evenly split.</p>
+<p>An independent LLM provided provisional classifications without being shown the production predictions. We then reviewed the records against our editorial standard, paying particular attention to disagreements and ambiguous cases. Some decisions used only available title and description fields; a difficult market roundup was evaluated with fuller RSS text.</p>
+<p><strong>The final review was human-supervised, but not blinded.</strong> We could see the production and LLM predictions during adjudication, creating a real possibility of anchoring bias. The results describe agreement with our operational editorial policy, not an objectively infallible ground truth.</p>
+<h3>What we found</h3>
+<figure class="article-diagram"><img alt="Confusion matrix for 100 adjudicated production decisions" decoding="async" height="400" loading="lazy" src="../../assets/diagrams/article9-confusion-matrix.svg" width="730"/></figure>
+<table class="article-metrics-table">
+<thead>
+<tr>
+<th>Measure</th>
+<th style="text-align:right">Observed reviewed sample</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Correct decisions</td>
+<td style="text-align:right"><strong>97 / 100</strong></td>
+</tr>
+<tr>
+<td>False positives</td>
+<td style="text-align:right"><strong>3</strong></td>
+</tr>
+<tr>
+<td>False negatives</td>
+<td style="text-align:right"><strong>0 observed</strong></td>
+</tr>
+<tr>
+<td>AI precision</td>
+<td style="text-align:right"><strong>94.0%</strong></td>
+</tr>
+<tr>
+<td>AI recall</td>
+<td style="text-align:right"><strong>100.0% observed</strong></td>
+</tr>
+<tr>
+<td>AI F1</td>
+<td style="text-align:right"><strong>96.91%</strong></td>
+</tr>
+</tbody>
+</table>
+<p>All three disagreements were production <strong>false positives</strong>: the generic market roundup, the Atari store-closure story, and the artificial coral-reef story.</p>
+<p>Other cases required judgment but remained AI-related. For example, we included a report about a former OpenAI employee under our AI-company news policy. We also included a different, lengthy market roundup: although its headline concerned broader markets, its complete RSS text contained multiple substantial AI-industry sections. The difference between those two roundups is a useful reminder that <strong>relevance is not the same as keyword presence—or headline dominance</strong>.</p>
+<p>We found <strong>zero false negatives in the 50 sampled predicted-negative records</strong>. That does <em>not</em> mean the pipeline never misses AI news; there were another 6,809 predicted-negative records we did not inspect.</p>
+<h2>Why our 97% sample figure and 98.25% estimate are both valid</h2>
+<p>Our sample was balanced by <strong>prediction</strong>, whereas only <strong>29.1%</strong> of the eligible population had been predicted AI. So the raw 97/100 figure intentionally gives the predicted-positive and predicted-negative groups equal weight.</p>
+<p>To estimate accuracy for the 9,675 eligible records, we instead weight each group's observed correctness by its population size:</p>
+<p><strong>Weighted accuracy = (2,816 / 9,675 × 47 / 50) + (6,859 / 9,675 × 50 / 50) ≈ 98.25%.</strong></p>
+<p>This is a <strong>sampling-weighted estimate</strong>, not an observed census result. It depends on the uniform random sampling within each predicted group, our final labels, and the defined snapshot. It says nothing directly about future traffic or other content types.</p>
+<p>The small review set matters. Our internal report provides an approximate, clipped normal 95% interval of <strong>96.32%–100%</strong> for weighted accuracy. That interval is illustrative, not a definitive coverage guarantee: one stratum had zero observed errors, and sampling uncertainty is only part of the uncertainty. Editorial disagreement, incomplete article context, and non-blinded adjudication are not captured by that interval.</p>
+<h2>Two separate evaluations. Two identical accuracy percentages. No head-to-head result.</h2>
+<p>It's tempting to say the raw XGBoost model and production pipeline both achieved 97%, so the rules made no difference. That would be a mistake.</p>
+<p>The offline benchmark and production audit used <strong>different examples, different label provenance, and different sampling designs</strong>. The first evaluated only the XGBoost model; the second evaluated final stored decisions with rule overrides. The first observed three false negatives; the second observed three false positives. We cannot attribute that difference to the rules.</p>
+<p>To isolate the effect of the rule layer, we need a <strong>paired experiment</strong>: run the same version of raw XGBoost on these <em>same</em> 100 adjudicated production articles, then compare both sets of predictions to the same final labels. We have not presented that experiment as completed.</p>
+<h2>What we would improve next</h2>
+<p>The audit generated a repeatable process—defined cohort, random sampling, provisional independent review, written editorial policy, final adjudication, stored labels, and reproducible scoring. That is more useful than an isolated percentage.</p>
+<p>Next steps are deliberately limited:</p>
+<ul>
+<li><strong>Increase the sample size</strong> and repeat the audit on fresh time windows.</li>
+<li><strong>Blind at least part of the adjudication</strong>, and use multiple reviewers for the hardest cases.</li>
+<li><strong>Record decision provenance</strong>—exclusion, inclusion keyword, or XGBoost—to measure where errors actually originate.</li>
+<li><strong>Run the paired model-versus-production comparison</strong> before making claims about whether rules improve accuracy.</li>
+<li><strong>Make the export window explicit</strong> with saved UTC start and end timestamps instead of relying only on a rolling <code>now()</code> query.</li>
+</ul>
+<p>The broader repository test suite also has pre-existing collection and environment issues; our <strong>14 targeted evaluation tests passed</strong>, but we do not represent that as a clean full-suite regression run.</p>
+<h2>The result that matters</h2>
+<p>On a review of 100 saved production decisions, <strong>97 matched our human-supervised editorial labels</strong>. A correctly weighted estimator suggests high accuracy for the eligible 14-day snapshot, with meaningful uncertainty.</p>
+<p>That's encouraging—not a declaration that the problem is solved.</p>
+<p>For an AI news intelligence platform, engineering quality means knowing not only <strong>how to get a prediction</strong>, but also <strong>how much confidence the evidence deserves</strong>. This audit gave us a better answer to the second question, and a clearer plan for improving the first.</p>
+<hr/>
+<p><em>Scope and reproducibility: This evaluation covers binary AI relevance for <code>news</code> articles, not story clustering, topic classification, or entity extraction. Evaluation scripts and documentation were added to the Axon Review backend repository in commit <code>15563dd</code> (<code>feat(ml): add reproducible classifier evaluation framework</code>). Production article-level data and review records are retained locally, not included in the code commit. The source snapshot was generated October 31, 2026; editorial review was completed November 1.</em></p>
+</div>
+<aside class="article-cta"><h2>Evaluating an ML system beyond its benchmark?</h2><p>I build and improve practical ML pipelines, backend services, and production AI applications with measurable quality and clear engineering tradeoffs.</p><a class="button" href="mailto:rakeshbhatia22@proton.me?subject=ML%20Engineering%20Project">Discuss your project</a></aside>
+</article></main><footer>© 2026 Rakesh Bhatia. All rights reserved.</footer></div></body></html>
