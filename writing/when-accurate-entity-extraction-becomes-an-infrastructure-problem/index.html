@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>When Accurate Entity Extraction Becomes an Infrastructure Problem — Rakesh Bhatia</title>
+<meta name="description" content="A retrospective on GLiNER, entity normalization, external verification, and the operational tradeoffs that led us to pause an NER pipeline." />
+<meta name="author" content="Rakesh Bhatia" /><meta name="theme-color" content="#fafaf8" />
+<link rel="canonical" href="https://rakeshbhatia.github.io/writing/when-accurate-entity-extraction-becomes-an-infrastructure-problem/" /><link rel="stylesheet" href="../../assets/writing.css" />
+<meta property="og:type" content="article" /><meta property="og:title" content="When Accurate Entity Extraction Becomes an Infrastructure Problem" />
+<meta property="og:description" content="A retrospective on GLiNER, entity normalization, external verification, and the operational tradeoffs that led us to pause an NER pipeline." /><meta property="og:url" content="https://rakeshbhatia.github.io/writing/when-accurate-entity-extraction-becomes-an-infrastructure-problem/" />
+<meta name="twitter:card" content="summary" /><meta name="twitter:title" content="When Accurate Entity Extraction Becomes an Infrastructure Problem" />
+<meta name="twitter:description" content="A retrospective on GLiNER, entity normalization, external verification, and the operational tradeoffs that led us to pause an NER pipeline." />
+<style>
+.article-header + .article-body { padding-top:24px; }
+.pipeline-figure { margin:30px 0 10px; padding:22px; border:1px solid #dad9d3; background:#fff; border-radius:12px; }
+.pipeline-step { display:flex; flex-direction:column; align-items:center; gap:4px; padding:12px 18px; border:1px solid #dad9d3; border-radius:8px; background:#f6f6f3; text-align:center; color:#181817; }
+.pipeline-step span { font-size:.82rem; color:#686760; }
+.pipeline-arrow { text-align:center; padding:5px; color:#77746f; font-size:21px; line-height:1.1; }
+</style></head>
+<body class="article-page"><div class="container">
+<nav class="site-nav" aria-label="Primary"><a class="site-nav-brand" href="/">Rakesh Bhatia</a><div class="site-nav-links"><a href="/#featured">Work</a><a href="/writing/">Writing</a><a href="/#services">Services</a><a href="https://github.com/rakeshbhatia" target="_blank" rel="noopener noreferrer">GitHub</a></div></nav>
+<main><article class="article-shell"><header class="article-header"><div class="eyebrow">Technical Note</div>
+<h1>When Accurate Entity Extraction Becomes an Infrastructure Problem</h1><p class="article-deck">A retrospective on building an entity-recognition pipeline—and learning that normalization, external verification, and infrastructure costs can be harder than extraction itself.</p>
+<div class="article-meta">Rakesh Bhatia · <time datetime="2026-11-15">November 15, 2026</time> · 7 min read</div>
+<div class="tags">NLP · Named-Entity Recognition · GLiNER · ML Infrastructure</div></header>
+<div class="article-body">
+<p>Extracting names from text sounds like the kind of problem that should end when the model returns its predictions. In practice, that is often where the engineering work begins.</p>
+<p>While developing an AI news intelligence pipeline, I built a named-entity recognition (NER) stage to identify people, companies, models, products, hardware, locations, and other entities mentioned in incoming articles. The first question was whether a model could find useful names. The harder questions followed: <strong>Which names were actually useful? Which variations referred to the same entity? What should happen when verification was uncertain? And could the entire pipeline be operated economically?</strong></p>
+<p>We implemented a substantial solution around GLiNER, deterministic normalization, fuzzy matching, optional Wikidata lookups, and database persistence. Eventually, we paused NER processing on our VPS. The experience illustrates a lesson that matters well beyond news: <strong>model capability and production viability are different engineering problems.</strong></p>
+<h2>Extraction gives you mentions, not clean entities</h2>
+<p>Consider a hypothetical article discussing “NVIDIA Corp.,” “NVIDIA,” and a new accelerator. A named-entity model might identify the company twice, label a product mention, and return offsets and confidence scores. Those are useful <em>mentions</em>, not necessarily normalized records ready for analytics.</p>
+<p>A downstream dashboard needs consistent labels. An entity search feature needs to avoid treating trivial casing differences as separate entities. An analytics pipeline needs to suppress generic terms and source-specific noise. If references are ambiguous, the system must avoid inventing identities simply to make the output look tidy.</p>
+<p>This distinction shaped our earlier implementation. We used GLiNER to detect spans from article titles and descriptions, then passed its outputs through a separate normalization and consolidation layer.</p>
+<div class="pipeline-figure" role="img" aria-label="Historical NER processing flow: article title and description to GLiNER, mention normalization, optional Wikidata checks, article-level consolidation, and stored entity fields">
+  <div class="pipeline-step"><strong>Article title + description</strong><span>Input text</span></div>
+  <div class="pipeline-arrow" aria-hidden="true">↓</div>
+  <div class="pipeline-step"><strong>GLiNER</strong><span>Candidate entity spans, labels, scores</span></div>
+  <div class="pipeline-arrow" aria-hidden="true">↓</div>
+  <div class="pipeline-step"><strong>Normalization + verification</strong><span>Casing, aliases, noise gates, optional Wikidata checks</span></div>
+  <div class="pipeline-arrow" aria-hidden="true">↓</div>
+  <div class="pipeline-step"><strong>Article-level consolidation</strong><span>Resolve repeated forms and limit output</span></div>
+  <div class="pipeline-arrow" aria-hidden="true">↓</div>
+  <div class="pipeline-step"><strong>PostgreSQL</strong><span>Named entities, typed JSON, processing timestamp</span></div>
+</div>
+<p><em>This diagram describes the historical implementation, not an active production service.</em></p>
+<h2>The model was only one part of the architecture</h2>
+<p>The NER stage used a cached GLiNER model, with a configurable model source that could point to a local directory or Hugging Face. We defined domain-oriented labels such as named companies, AI models, hardware components, people, research institutions, and regulations. The checked-in configuration specifies a confidence threshold of <code>0.55</code> and a maximum of ten entities per article.</p>
+<p>After inference, our processor used the model's character offsets to recover casing from the original article text, then sorted extracted mentions by length before attempting article-level consolidation. The resulting entity strings and typed records were written back to PostgreSQL with a processing timestamp. Model inference occurred outside the database transaction, avoiding a long transaction held open during prediction.</p>
+<p>On paper, this is a straightforward pipeline. In practice, each additional stage introduces another class of correctness and operational decisions.</p>
+<h2>Normalization becomes a collection of judgment calls</h2>
+<p>Our normalizer evolved into a sequence of deterministic and external checks. It could strip common company suffixes, standardize certain country names and abbreviations, apply exact alias mappings, use tightly bounded fuzzy matching over those aliases, reject blocklisted terms, preserve selected technical acronyms, and optionally query Wikidata for supporting type information.</p>
+<p>These rules solve real problems. They also have boundaries.</p>
+<p>For example, removing “Corp.” from a company name improves consistency, but it does not prove that two mentions refer to the same legal entity. A short acronym might mean different things in different industries. A Wikidata search result may be useful supporting evidence, but the first returned result is not a universal identity authority.</p>
+<p>The code also exposes a practical limit: article-level consolidation is not the same as globally resolving every entity across an entire corpus. We grouped obvious within-article variants; we did not establish a comprehensive, persistent entity graph with globally unique identifiers and fully evaluated disambiguation.</p>
+<p><strong>The more aggressively a pipeline merges names, the greater the risk of merging distinct entities. The more conservatively it behaves, the more duplicate or fragmented entries it may retain.</strong> That tradeoff cannot be eliminated by adding one more regex.</p>
+<h2>External verification expands the failure surface</h2>
+<p>For some entity types, our implementation could consult Wikidata. It used cached searches, a request timeout, a configurable rate limit, and checks against selected type identifiers. Those details were not incidental: they reflected the operational consequences of adding an outside dependency to a processing job.</p>
+<p>Network calls may time out, rate limits may slow throughput, and result quality can vary. The implementation generally falls back to a cleaned name when the lookup does not produce a suitable match. That favors continuity over blocking every article on external enrichment, but the fallback does not guarantee correctness.</p>
+<p>This is a common pattern in AI applications: a model emits a plausible answer, validation adds safeguards, and suddenly the system depends on more code paths, external services, caches, and error handling than the original model demo suggested.</p>
+<h2>And the compute budget is part of correctness</h2>
+<p>GLiNER offered useful flexibility for our domain-specific labels. But operating a relatively heavy NLP model inside a resource-constrained VPS-based news pipeline was harder to justify once we accounted for memory demands, startup and inference overhead, scheduling, and ongoing maintenance alongside other backend jobs.</p>
+<p>We ultimately deactivated the NER pipeline. That is an operational decision, not evidence that the model was inaccurate. We do not have a current evaluation dataset or recent production metrics to establish its extraction quality today, nor am I claiming measured throughput improvements from turning it off.</p>
+<p>The distinction matters. A pipeline can produce promising outputs in development and still fail the product's cost-benefit test in production. Engineering discipline includes knowing when not to keep a component running simply because substantial work has already gone into it.</p>
+<h2>What I would change before turning it back on</h2>
+<p>A restart should begin with a narrower question: <strong>Which downstream feature needs these entities, and how much quality is sufficient for that feature?</strong> A trending-company chart, a personalized alert, and a canonical knowledge graph have very different tolerance for noisy or ambiguous names.</p>
+<p>My next iteration would focus on four checks:</p>
+<ol>
+<li><strong>Define a small labeled evaluation set.</strong> Measure extraction and normalization separately, including ambiguous acronyms, company aliases, model names, and false positives.</li>
+<li><strong>Measure operating cost on the intended hardware.</strong> Record memory, model-load time, per-article latency, and sustained throughput rather than assuming a successful local run represents VPS behavior.</li>
+<li><strong>Reduce the dependency surface.</strong> Test whether deterministic dictionaries, lighter models, batched inference, or selective processing can satisfy the specific product requirement before restoring full GLiNER processing.</li>
+<li><strong>Make uncertain identity explicit.</strong> Preserve the source mention and its evidence when a canonical match is not well-supported instead of forcing a confident-looking merge.</li>
+</ol>
+<p>These are proposed next steps, not completed experiments or deployed improvements.</p>
+<h2>The infrastructure lesson</h2>
+<p>Named-entity recognition is often introduced as a model-selection problem: choose a capable extractor, supply the text, and collect the names. My experience was different. The harder work appeared between the model output and the product feature—in normalization, ambiguity handling, external enrichment, database integration, and resource management.</p>
+<p>That is why this older project remains instructive even while its processing job is disabled. It reveals the difference between making an NLP component work and making it worth operating.</p>
+<p><strong>In production AI, the right question is not only “Can the model do this?” It is “Can the complete system do this reliably, affordably, and for a reason that matters?”</strong></p>
+<hr>
+<p><em>Implementation note: This is a retrospective on an earlier, currently inactive NER subsystem. The discussion is grounded in the repository's <code>app/ner_processor.py</code>, <code>app/entity_normalizer.py</code>, <code>app/ner_config.py</code>, and <code>app/nlp_setup.py</code>. Illustrative examples are not presented as measured production incidents. No recent NER quality or performance benchmarks are claimed.</em></p>
+</div>
+<aside class="article-cta"><h2>Building an NLP system beyond the model demo?</h2><p>I work on practical machine learning pipelines and backend systems with an emphasis on reliability, clear tradeoffs, and production constraints.</p><a class="button" href="mailto:rakeshbhatia22@proton.me?subject=NLP%20Engineering%20Project">Discuss your project</a></aside>
+</article></main><footer>© 2026 Rakesh Bhatia. All rights reserved.</footer></div></body></html>
